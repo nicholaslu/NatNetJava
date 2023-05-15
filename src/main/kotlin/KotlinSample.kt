@@ -1,11 +1,11 @@
-import java.lang.Exception
-import java.net.InetSocketAddress
-import kotlin.system.exitProcess
-
 // OptiTrack NatNet direct depacketization sample for Kotlin
 //
 // Uses the Kotlin NatNetClient.kt library to establish a connection (by creating a NatNetClient),
 // and receive data via a NatNet connection and decode it using the NatNetClient library.
+
+import java.lang.Exception
+import java.net.InetSocketAddress
+import kotlin.system.exitProcess
 
 // This is a callback function that gets connected to the NatNet client
 // and called once per mocap frame.
@@ -17,8 +17,8 @@ fun receiveNewFrame(dataDict: MutableMap<String, Any>) {
     val dumpArgs = false
     if (dumpArgs) {
         var outString = "    "
-        for (key in dataDict) {
-            outString += key as String + "="
+        for (key in dataDict.keys) {
+            outString += "$key="
             if (key in dataDict) {
                 outString += dataDict[key] as String + " "
             }
