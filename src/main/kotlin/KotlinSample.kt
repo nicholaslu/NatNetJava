@@ -216,7 +216,7 @@ fun main(args: Array<String>) {
     var isLooping = true
     Thread.sleep(1000)
     if (streamingClient.connected()) {
-        println("ERROR: Could not connect properly.  Check that Motive streaming is on.")
+        println("ERROR: Could not connect properly. Check that Motive streaming is on.")
         try {
             exitProcess(2)
         } catch (e:Exception){
