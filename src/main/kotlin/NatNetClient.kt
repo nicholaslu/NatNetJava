@@ -1,12 +1,11 @@
 import java.io.IOException
-import java.lang.Exception
 import java.net.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.IllegalBlockingModeException
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.min
+
 
 fun intFromBytes(data: ByteArray, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN): Int {
     var result = 0
@@ -394,7 +393,6 @@ class NatNetClient() {
             // allow multiple clients on same machine to use multicast group address/port
             result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
             try {
-//                result.bind("",0)
                 result.bind(InetSocketAddress(InetAddress.getByName(""), 0)) ////todo check getByName
             } catch (e: IOException) {
                 println("ERROR: command socket IOException occurred:\n%s".format(e.message))
@@ -439,11 +437,11 @@ class NatNetClient() {
             // Multicast case
             val result = MulticastSocket(null)
             result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
-            val group = InetAddress.getByName(multicastAddress)
-            result.joinGroup(group, ) //todo not real bytearray address
             try {
-                result.bind(InetSocketAddress(localIpAddress, port))
-//                result.bind(InetSocketAddress(InetAddress.getByName(localIpAddress), port)) //todo how to multicast
+                result.bind(InetSocketAddress(port))
+                val mcastaddr = InetSocketAddress(multicastAddress, port)
+                val netIf = NetworkInterface.getByName(localIpAddress)
+                result.joinGroup(mcastaddr, netIf)
             } catch (e: SocketException) {
                 println("ERROR: data socket SocketException occurred:\n%s".format(e.message))
                 println("  Check Motive/Server mode requested mode agreement.  You requested Multicast ")

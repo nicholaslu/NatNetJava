@@ -31,7 +31,7 @@ fun receiveNewFrame(dataDict: MutableMap<String, Any>) {
 // This is a callback function that gets connected to the NatNet client. It is called once per rigid body per frame
 fun receiveRigidBodyFrame(newId: Int, position: ArrayList<Double>, rotation: ArrayList<Double>) {
     //
-//    println("Received frame for rigid body".format(newId))
+//    println("Received frame for rigid body$newId")
 //    println("Received frame for rigid body$newId position rotation")
 }
 
@@ -87,8 +87,8 @@ fun printConfiguration(natnetClient: NatNetClient) {
             natNetRequestedVersion[2], natNetRequestedVersion[3]
         )
     )
-    println("commandSocket = %s".format(natnetClient.commandSocket.toString()))
-    println("dataSocket    = %s".format(natnetClient.dataSocket.toString()))
+    println("commandSocket = %s".format(natnetClient.commandSocket))
+    println("dataSocket    = %s".format(natnetClient.dataSocket))
 }
 
 fun printCommands(canChangeBitstream: Boolean) {
@@ -154,15 +154,15 @@ fun testClasses() {
 fun myParseArgs(argList:Array<String>, argsDict:MutableMap<String, Any>) : MutableMap<String, Any>{
 //    set up base values
     val argListLen = argList.size
-    if (argListLen > 1) {
-        argsDict["serverAddress"] = argList[1]
-        if (argListLen > 2) {
-            argsDict["clientAddress"] = argList[2]
+    if (argListLen > 0) {
+        argsDict["serverAddress"] = argList[0]
+        if (argListLen > 1) {
+            argsDict["clientAddress"] = argList[1]
         }
-        if (argListLen > 3) {
-            if (argList[3].length >1) {
+        if (argListLen > 2) {
+            if (argList[2].length >1) {
                 argsDict["useMulticast"] = true
-                if (argList[3][0].uppercase() == "U") {
+                if (argList[2][0].uppercase() == "U") {
                     argsDict["useMulticast"] = false
                 }
             }
@@ -176,7 +176,7 @@ fun main(args: Array<String>) {
 
     var optionsDict = mutableMapOf<String, Any>()
     optionsDict["clientAddress"] = "127.0.0.1"
-    optionsDict["serverAddress"] = "127.0.0.1"
+    optionsDict["serverAddress"] = "192.168.208.20"
     optionsDict["useMulticast"] = true
 
     // This will create a new NatNet client
@@ -305,7 +305,7 @@ fun main(args: Array<String>) {
 
             } else if (c1 == "j") {
                 streamingClient.setPrintLevel(0)
-                println("Showing only received frame numbers and supressing data descriptions")
+                println("Showing only received frame numbers and suppressing data descriptions")
             } else if (c1 == "k") {
                 streamingClient.setPrintLevel(1)
                 println("Showing every received frame")
