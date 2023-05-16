@@ -304,17 +304,18 @@ fun main(args: Array<String>) {
                 testClasses()
 
             } else if (c1 == "j") {
-                streamingClient.setPrintLevel(0)
+                streamingClient.printLevel = 0
                 println("Showing only received frame numbers and suppressing data descriptions")
             } else if (c1 == "k") {
-                streamingClient.setPrintLevel(1)
+                streamingClient.printLevel = 1
                 println("Showing every received frame")
 
             } else if (c1 == "l") {
-                val printLevel = streamingClient.setPrintLevel(20)
+                streamingClient.printLevel = 20
+                val printLevel = streamingClient.printLevel
                 val printLevelMod = printLevel % 100
                 if (printLevel == 0) {
-                    println("Showing only received frame numbers and supressing data descriptions")
+                    println("Showing only received frame numbers and suppressing data descriptions")
                 } else if ((printLevel == 1)) {
                     println("Showing every frame")
                 } else if ((printLevelMod == 1)) {
@@ -336,7 +337,6 @@ fun main(args: Array<String>) {
             }
             println("Ready...\n")
         }
-
-        println("exiting")
     }
+    println("exiting")
 }

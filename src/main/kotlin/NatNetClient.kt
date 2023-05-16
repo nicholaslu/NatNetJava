@@ -1,3 +1,8 @@
+// OptiTrack NatNet direct depacketization sample for Kotlin
+//
+// Uses the Kotlin NatNetClient.kt library to establish a connection (by creating a NatNetClient),
+// and receive data via a NatNet connection and decode it using the NatNetClient library.
+
 import java.io.IOException
 import java.net.*
 import java.nio.ByteBuffer
@@ -37,23 +42,23 @@ fun bytesPartition(data: ByteArray, sep: String): Triple<String, String, String>
 }
 
 fun trace(vararg args: Any) {
-    // uncomment the one you want to use
+    //uncomment the one you want to use
     println(Array(args.size) { args[it].toString() }.joinToString(separator = ""))
-    //;
+//    ;
 }
 
 //Used for Data Description functions
-fun traceDd(vararg args: Any): Any? {
-//    uncomment the one you want to use
+fun traceDd(vararg args: Any) {
+    //uncomment the one you want to use
 //    println(Array(args.size){args[it].toString()}.joinToString(separator = ""))
-    return null
+    ;
 }
 
 //Used for MoCap Frame Data functions
-fun traceMf(vararg args: Any): Any? {
-//     uncomment the one you want to use
-    println(Array(args.size) { args[it].toString() }.joinToString(separator = ""))
-    return null
+fun traceMf(vararg args: Any) {
+    //uncomment the one you want to use
+//    println(Array(args.size) { args[it].toString() }.joinToString(separator = ""))
+    ;
 }
 
 fun getMessageId(data: ByteArray): Int {
@@ -62,10 +67,10 @@ fun getMessageId(data: ByteArray): Int {
 }
 
 // Create structs for reading various object types to speed up parsing.
-//val Vector2 = struct.Struct('<ff')
+//Vector2 = struct.Struct( '<ff' )
 class Vector2() {
     companion object {
-        const val size = 2
+        private const val size = 2
         fun pack(data: ArrayList<Double>): ByteArray {
             val buffer = ByteBuffer.allocate(size * 4).order(ByteOrder.LITTLE_ENDIAN)
             data.forEach { i -> buffer.putFloat(i.toFloat()) }
@@ -81,10 +86,10 @@ class Vector2() {
     }
 }
 
-//val Vector3 = struct.Struct('<fff')
+//Vector3 = struct.Struct( '<fff' )
 class Vector3() {
     companion object {
-        const val size = 3
+        private const val size = 3
         fun pack(data: ArrayList<Double>): ByteArray {
             val buffer = ByteBuffer.allocate(size * 4).order(ByteOrder.LITTLE_ENDIAN)
             data.forEach { i -> buffer.putFloat(i.toFloat()) }
@@ -100,10 +105,10 @@ class Vector3() {
     }
 }
 
-//val Quaternion = struct.Struct('<ffff')
+//Quaternion = struct.Struct( '<ffff' )
 class Quaternion() {
     companion object {
-        const val size = 4
+        private const val size = 4
         fun pack(data: ArrayList<Double>): ByteArray {
             val buffer = ByteBuffer.allocate(size * 4).order(ByteOrder.LITTLE_ENDIAN)
             data.forEach { i -> buffer.putFloat(i.toFloat()) }
@@ -119,7 +124,7 @@ class Quaternion() {
     }
 }
 
-//val FloatValue = struct.Struct('<f')
+//FloatValue = struct.Struct( '<f' )
 class FloatValue() {
     companion object {
         fun pack(data: Double): ByteArray {
@@ -134,7 +139,7 @@ class FloatValue() {
     }
 }
 
-//val DoubleValue = struct.Struct('<d')
+//DoubleValue = struct.Struct( '<d' )
 class DoubleValue() {
     companion object {
         fun pack(data: Double): ByteArray {
@@ -149,7 +154,7 @@ class DoubleValue() {
     }
 }
 
-//val NNIntValue = struct.Struct('<I') //todo later
+//NNIntValue = struct.Struct( '<I') //todo later
 class NNIntValue() {
     companion object {
 //        fun pack(data: UInt): ByteArray {
@@ -163,7 +168,7 @@ class NNIntValue() {
     }
 }
 
-//val FPCalMatrixRow = struct.Struct('<ffffffffffff')
+//FPCalMatrixRow = struct.Struct( '<ffffffffffff' )
 class FPCalMatrixRow() {
     companion object {
         const val size = 12
@@ -182,7 +187,7 @@ class FPCalMatrixRow() {
     }
 }
 
-//val FPCorners = struct.Struct('<ffffffffffff')
+//FPCorners = struct.Struct( '<ffffffffffff')
 class FPCorners() {
     companion object {
         const val size = 12
@@ -205,10 +210,15 @@ class NatNetClient() {
     // printLevel = 0 off
     // printLevel = 1 on
     // printLevel = >1 on / print every nth mocap frame
-    private var printLevel = 20
+    var printLevel = 20
+        set(value) {
+            if (value >= 0) {
+                field = value
+            }
+        }
 
     // Change this value to the IP address of the NatNet server.
-    var serverIpAddress = "127.0.0.1"
+    var serverIpAddress = "192.168.208.20"
 
     // Change this value to the IP address of your local network interface
     var localIpAddress = "127.0.0.1"
@@ -237,13 +247,13 @@ class NatNetClient() {
     private var applicationName = "Not Set"
 
     // NatNet stream version server is capable of. This will be updated during initialization only.
-    private var natNetStreamVersionServer = arrayListOf<Int>(0, 0, 0, 0)
+    private var natNetStreamVersionServer = arrayListOf(0, 0, 0, 0)
 
     // NatNet stream version. This will be updated to the actual version the server is using during runtime.
-    private val natNetRequestedVersion = arrayListOf<Int>(0, 0, 0, 0)
+    private val natNetRequestedVersion = arrayListOf(0, 0, 0, 0)
 
     // server stream version. This will be updated to the actual version the server is using during initialization.
-    private val serverVersion = arrayListOf<Int>(0, 0, 0, 0)
+    private val serverVersion = arrayListOf(0, 0, 0, 0)
 
     // Lock values once run is called
     private var isLocked = false
@@ -358,23 +368,23 @@ class NatNetClient() {
         return natNetRequestedVersion[1]
     }
 
-    fun setPrintLevel(newPrintLevel: Int = 0): Int {
-        if (newPrintLevel >= 0) {
-            printLevel = newPrintLevel
-        }
-        return printLevel
-    }
-
-    fun getPrintLevel(): Int {
-        return printLevel
-    }
+//    fun setPrintLevel(newPrintLevel: Int = 0): Int {
+//        if (newPrintLevel >= 0) {
+//            printLevel = newPrintLevel
+//        }
+//        return printLevel
+//    }
+//
+//    fun getPrintLevel(): Int {
+//        return printLevel
+//    }
 
     fun connected(): Boolean {
         var retValue = true
         // check sockets
-        if (commandSocket == null) {
+        if (!::commandSocket.isInitialized) {
             retValue = false
-        } else if (dataSocket == null) {
+        } else if (!::dataSocket.isInitialized) {
             retValue = false
             // check versions
         } else if (getApplicationName() == "Not Set") {
@@ -1546,9 +1556,33 @@ class NatNetClient() {
         return offset
     }
 
-    private fun commandThreadFunction(inSocket: Any, stop: () -> Boolean, gprintLevel: () -> Int): Int {
+
+    class MulticastReceiver : Thread() {
+        protected var socket: MulticastSocket? = null
+        protected var buf = ByteArray(256)
+        override fun run() {
+            socket = MulticastSocket(4446)
+            val group = InetAddress.getByName("230.0.0.0")
+            socket!!.joinGroup(group)
+            while (true) {
+                val packet = DatagramPacket(buf, buf.size)
+                socket!!.receive(packet)
+                val received = String(
+                    packet.data, 0, packet.length
+                )
+                if ("end" == received) {
+                    break
+                }
+            }
+            socket!!.leaveGroup(group)
+            socket!!.close()
+        }
+    }
+
+
+    private fun commandThreadFunction(inSocket: DatagramSocket, stop: () -> Boolean, gprintLevel: () -> Int): Int {
         val messageIdDict = mutableMapOf<String, Int>()
-        if (!useMulticast && inSocket is MulticastSocket) {
+        if (!useMulticast) {
             inSocket.soTimeout = 2000
         }
         var data = ByteArray(0)
@@ -1559,16 +1593,14 @@ class NatNetClient() {
             // Block for input
             try {
                 val datagramPacket = DatagramPacket(recvBuffer, recvBufferSize)
-                when (inSocket){
-                    is MulticastSocket -> {inSocket.receive(datagramPacket)}
-                    is DatagramSocket-> {inSocket.receive(datagramPacket)}
-                }
+                inSocket.receive(datagramPacket)
                 data = datagramPacket.data
                 val addr = datagramPacket.address
             } catch (e: IOException) {
-                if (stop()){
-                    println("ERROR: data socket access error occurred:\n  %s".format(e.message))
-                    return 1
+                if (stop()) {
+//                    println("ERROR: data socket access error occurred:\n  %s".format(e.message))
+//                    return 1
+                    println("shutting down")
                 }
             } catch (e: PortUnreachableException) {
                 println("ERROR: data socket access PortUnreachableException occurred")
@@ -1576,14 +1608,14 @@ class NatNetClient() {
             } catch (e: IllegalBlockingModeException) {
                 println("ERROR: data socket access IllegalBlockingModeException occurred")
 //                return 3
-            } catch (e: SocketTimeoutException){
-//                if (useMulticast){
-                println("ERROR: data socket access timeout occurred. Server not responding")
+            } catch (e: SocketTimeoutException) {
+                if (useMulticast) {
+                    println("ERROR: data socket access timeout occurred. Server not responding")
                     //return 4
-//                }
+                }
             }
 
-            if (data.isNotEmpty()) { //todo check 0.size
+            if (data.isNotEmpty()) {
                 //peek ahead at messageId
                 var messageId = getMessageId(data)
                 val tmpStr = "mi_%1d".format(messageId)
@@ -1627,14 +1659,19 @@ class NatNetClient() {
             // Block for input
             try {
                 val datagramPacket = DatagramPacket(recvBuffer, recvBufferSize)
-                when (inSocket){
-                    is MulticastSocket -> {inSocket.receive(datagramPacket)}
-                    is DatagramSocket-> {inSocket.receive(datagramPacket)}
+                when (inSocket) {
+                    is MulticastSocket -> {
+                        inSocket.receive(datagramPacket)
+                    }
+
+                    is DatagramSocket -> {
+                        inSocket.receive(datagramPacket)
+                    }
                 }
                 data = datagramPacket.data
                 val addr = datagramPacket.address
             } catch (e: IOException) {
-                if (stop()){
+                if (stop()) {
 //                    println("ERROR: command socket access error occurred:\n  %s".format(e.message))
                     //return 1
                     println("shutting down")
@@ -1645,8 +1682,8 @@ class NatNetClient() {
             } catch (e: IllegalBlockingModeException) {
                 println("ERROR: command socket access IllegalBlockingModeException occurred")
                 return 3
-            } catch (e: SocketTimeoutException){
-                if (useMulticast){
+            } catch (e: SocketTimeoutException) {
+                if (useMulticast) {
                     println("ERROR: command socket access timeout occurred. Server not responding")
                     //return 4
                 }
@@ -1808,7 +1845,7 @@ class NatNetClient() {
                 is DatagramSocket -> inSocket.send(datagramPacket)
             }
             data.size
-        } catch (e: Exception){
+        } catch (e: Exception) {
             -1
         }
     }
@@ -1818,7 +1855,8 @@ class NatNetClient() {
         var retVal = -1
         while (nTries >= 1) {
             nTries -= 1
-            retVal = sendRequest(commandSocket, NAT_REQUEST, commandStr, InetSocketAddress(serverIpAddress, commandPort))
+            retVal =
+                sendRequest(commandSocket, NAT_REQUEST, commandStr, InetSocketAddress(serverIpAddress, commandPort))
             if ((retVal != -1)) {
                 break
             }
