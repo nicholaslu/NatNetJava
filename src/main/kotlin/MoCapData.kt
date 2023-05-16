@@ -133,12 +133,11 @@ private fun getAsString(inputStr: Any?): String {
 class FramePrefixData(val frameNumber: Int) {
     fun getAsString(tabStr: String = "  ", level: Int = 0): String {
         val outTabStr = getTabStr(tabStr, level)
-        val outStr = "%sFrame #: %3d\n".format(outTabStr, frameNumber)
-        return outStr
+        return "%sFrame #: %3d\n".format(outTabStr, frameNumber)
     }
 }
 
-class MarkerData() {
+class MarkerData {
     private var modelName = ""
     val markerPosList = arrayListOf<ArrayList<Double>>()
 
@@ -233,8 +232,7 @@ class RigidBodyMarker {
     }
 }
 
-class RigidBody(new_id: Int, val pos: ArrayList<Double>, val rot: ArrayList<Double>) {
-    val idNum = new_id
+class RigidBody(val idNum: Int, val pos: ArrayList<Double>, val rot: ArrayList<Double>) {
     var rbMarkerList = arrayListOf<RigidBodyMarker>()
     var trackingValid = false
     var error = 0.0
@@ -305,8 +303,7 @@ class RigidBodyData {
     }
 }
 
-class Skeleton(newId: Int = 0) {
-    val idNum = newId
+class Skeleton(val idNum: Int = 0) {
     val rigidBodyList = arrayListOf<RigidBody>()
 
     fun addRigidBody(rigidBody: RigidBody): Int {
@@ -357,14 +354,12 @@ class SkeletonData {
 }
 
 class LabeledMarker(
-    newId: Int,
+    val idNum: Int,
     val pos: ArrayList<Double>,
     val size: Double = 0.0,
     val param: Int = 0,
     val residual: Double = 0.0
 ) {
-    val idNum = newId
-
     //todo size is <class 'tuple'>"?
 
     private fun decodeMarkerId(): Pair<Int, Int> {
@@ -458,8 +453,7 @@ class ForcePlateChannelData {
     }
 }
 
-class ForcePlate(newId: Int = 0) {
-    val idNum = newId
+class ForcePlate(val idNum: Int = 0) {
     val channelDataList = arrayListOf<ForcePlateChannelData>() //todo what is channelData
 
     fun addChannelData(channelData: ForcePlateChannelData): Int {
@@ -540,8 +534,7 @@ class DeviceChannelData {
     }
 }
 
-class Device(newId: Int) {
-    val idNum = newId
+class Device(val idNum: Int) {
     val channelDataList = arrayListOf<DeviceChannelData>()
 
     fun addChannelData(channelData: DeviceChannelData) {
@@ -636,52 +629,52 @@ class MoCapData {
 
         var outStr = ""
         outStr += "%sMoCap Frame Begin\n%s-----------------\n".format(outTabStr, outTabStr)
-        if (::prefixData.isInitialized) {
-            outStr += prefixData.getAsString()
+        outStr += if (::prefixData.isInitialized) {
+            prefixData.getAsString()
         } else {
-            outStr += "%sNo Prefix Data Set\n".format(outTabStr)
+            "%sNo Prefix Data Set\n".format(outTabStr)
         }
 
-        if (::markerSetData.isInitialized) {
-            outStr += markerSetData.getAsString(tabStr, level + 1)
+        outStr += if (::markerSetData.isInitialized) {
+            markerSetData.getAsString(tabStr, level + 1)
         } else {
-            outStr += "%sNo Marker Set Data Set\n".format(outTabStr)
+            "%sNo Marker Set Data Set\n".format(outTabStr)
         }
 
-        if (::rigidBodyData.isInitialized) {
-            outStr += rigidBodyData.getAsString(tabStr, level + 1)
+        outStr += if (::rigidBodyData.isInitialized) {
+            rigidBodyData.getAsString(tabStr, level + 1)
         } else {
-            outStr += "%sNo Rigid Body Data Set\n".format(outTabStr)
+            "%sNo Rigid Body Data Set\n".format(outTabStr)
         }
 
-        if (::skeletonData.isInitialized) {
-            outStr += skeletonData.getAsString(tabStr, level + 1)
+        outStr += if (::skeletonData.isInitialized) {
+            skeletonData.getAsString(tabStr, level + 1)
         } else {
-            outStr += "%sNo Skeleton Data Set\n".format(outTabStr)
+            "%sNo Skeleton Data Set\n".format(outTabStr)
         }
 
-        if (::labeledMarkerData.isInitialized) {
-            outStr += labeledMarkerData.getAsString(tabStr, level + 1)
+        outStr += if (::labeledMarkerData.isInitialized) {
+            labeledMarkerData.getAsString(tabStr, level + 1)
         } else {
-            outStr += "%sNo Labeled Marker Data Set\n".format(outTabStr)
+            "%sNo Labeled Marker Data Set\n".format(outTabStr)
         }
 
-        if (::forcePlateData.isInitialized) {
-            outStr += forcePlateData.getAsString(tabStr, level + 1)
+        outStr += if (::forcePlateData.isInitialized) {
+            forcePlateData.getAsString(tabStr, level + 1)
         } else {
-            outStr += "%sNo Force Plate Data Set\n".format(outTabStr)
+            "%sNo Force Plate Data Set\n".format(outTabStr)
         }
 
-        if (::deviceData.isInitialized) {
-            outStr += deviceData.getAsString(tabStr, level + 1)
+        outStr += if (::deviceData.isInitialized) {
+            deviceData.getAsString(tabStr, level + 1)
         } else {
-            outStr += "%sNo Device Data Set\n".format(outTabStr)
+            "%sNo Device Data Set\n".format(outTabStr)
         }
 
-        if (::suffixData.isInitialized) {
-            outStr += suffixData.getAsString(tabStr, level + 1)
+        outStr += if (::suffixData.isInitialized) {
+            suffixData.getAsString(tabStr, level + 1)
         } else {
-            outStr += "%sNo Suffix Data Set\n".format(outTabStr)
+            "%sNo Suffix Data Set\n".format(outTabStr)
         }
 
         outStr += "%sMoCap Frame End\n%s-----------------\n".format(outTabStr, outTabStr)
@@ -691,20 +684,16 @@ class MoCapData {
 
 // test program
 fun generatePrefixData(frameNumber: Int = 0): FramePrefixData {
-    val framePrefixData = FramePrefixData(frameNumber)
-    return framePrefixData
+    return FramePrefixData(frameNumber)
 }
 
 fun generateLabel(labelBase: String = "label", labelNum: Int = 0): String {
-    val outLabel = "%s_%03d".format(labelBase, labelNum)
-    return outLabel
+    return "%s_%03d".format(labelBase, labelNum)
 }
 
 fun generatePositionSrand(posNum: Int = 0, frameNum: Int = 0): ArrayList<Double> {
     val random = Random(posNum + (frameNum * 1000))
-    val position =
-        arrayListOf<Double>(random.nextDouble(0.0, 100.0), random.nextDouble(0.0, 100.0), random.nextDouble(0.0, 100.0))
-    return position
+    return arrayListOf(random.nextDouble(0.0, 100.0), random.nextDouble(0.0, 100.0), random.nextDouble(0.0, 100.0))
 }
 
 fun generateMarkerData(labelBase: String, labelNum: Int, numPoints: Int = 1): MarkerData {
@@ -909,12 +898,12 @@ fun generateMocapData(frameNum: Int = 0): MoCapData {
 fun testAllMoCapData(runTest: Boolean = true): ArrayList<Int> {
     var totals = arrayListOf(0, 0, 0)
     if (runTest) {
-        val testCasesNames = arrayListOf<String>(
+        val testCasesNames = arrayListOf(
             "Test Prefix Data 0", "Test Marker Set Data 0", "Test Rigid Body Data 0",
             "Test Skeleton Data 0", "Test Labeled Marker Data 0", "Test Force Plate Data 0",
             "Test Device Data 0", "Test Suffix Data 0", "Test MoCap Data 0"
         )
-        val testHashStrs = arrayListOf<String>(
+        val testHashStrs = arrayListOf(
             "bffba016d02cf2167780df31aee697e1ec746b4c",
             "e39081da4886537ab4f4701cfce29e945a12adba",
             "b208c0b974ef1894e25992c48b8e39bdb01b034a",

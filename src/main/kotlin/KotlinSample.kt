@@ -87,8 +87,8 @@ fun printConfiguration(natnetClient: NatNetClient) {
             natNetRequestedVersion[2], natNetRequestedVersion[3]
         )
     )
-    println("commandSocket = %s".format(natnetClient.commandSocket))
-    println("dataSocket    = %s".format(natnetClient.dataSocket))
+//    println("commandSocket = %s".format(natnetClient.commandSocket))
+//    println("dataSocket    = %s".format(natnetClient.dataSocket))
 }
 
 fun printCommands(canChangeBitstream: Boolean) {
@@ -151,7 +151,7 @@ fun testClasses() {
     println("[SKIP] Count = %3d".format(totals[2]))
 }
 
-fun myParseArgs(argList:Array<String>, argsDict:MutableMap<String, Any>) : MutableMap<String, Any>{
+fun myParseArgs(argList: Array<String>, argsDict: MutableMap<String, Any>): MutableMap<String, Any> {
 //    set up base values
     val argListLen = argList.size
     if (argListLen > 0) {
@@ -160,7 +160,7 @@ fun myParseArgs(argList:Array<String>, argsDict:MutableMap<String, Any>) : Mutab
             argsDict["clientAddress"] = argList[1]
         }
         if (argListLen > 2) {
-            if (argList[2].length >1) {
+            if (argList[2].length > 1) {
                 argsDict["useMulticast"] = true
                 if (argList[2][0].uppercase() == "U") {
                     argsDict["useMulticast"] = false
@@ -206,20 +206,19 @@ fun main(args: Array<String>) {
         println("ERROR: Could not start streaming client.")
         try {
             exitProcess(1)
-        } catch (e: Exception){
+        } catch (e: Exception) {
             println("...")
         } finally {
             println("exiting")
         }
     }
 
-    var isLooping = true
     Thread.sleep(1000)
-    if (streamingClient.connected()) {
+    if (!streamingClient.connected()) {
         println("ERROR: Could not connect properly. Check that Motive streaming is on.")
         try {
-            exitProcess(2)
-        } catch (e:Exception){
+//            exitProcess(2)
+        } catch (e: Exception) {
             println("...")
         } finally {
             println("exiting")
@@ -230,10 +229,10 @@ fun main(args: Array<String>) {
     println("\n")
     printCommands(streamingClient.canChangeBitstreamVersion())
 
-    while (isLooping) {
+    while (true) {
         print("Enter command or (\'h\' for list of commands)\n")
         val inchars = readlnOrNull()
-        if (inchars != null) {
+        if (inchars!!.isNotEmpty()) {
             val c1 = inchars[0].lowercase()
             if (c1 == "h") {
                 printCommands(streamingClient.canChangeBitstreamVersion())
@@ -329,7 +328,6 @@ fun main(args: Array<String>) {
                 }
 
             } else if (c1 == "q") {
-                isLooping = false
                 streamingClient.shutdown()
                 break
             } else {

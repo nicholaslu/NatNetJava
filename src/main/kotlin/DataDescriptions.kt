@@ -141,9 +141,11 @@ private fun getDataSubPacketType(newData: Any?): String {
         is CameraDescription -> {
             outString = "Type: 5 Camera\n"
         }
+
         null -> {
             outString = "Type: None\n"
         }
+
         else -> {
             outString = "Type: Unknown %s\n".format(dataType.toString())
         }
@@ -204,34 +206,40 @@ class RBMarker(
     }
 }
 
-class RigidBodyDescription(var szName:String = "", newId:Int = 0, private var parentId:Int = 0, var pos: ArrayList<Double> = arrayListOf(0.0, 0.0, 0.0)) {
+class RigidBodyDescription(
+    var szName: String = "",
+    newId: Int = 0,
+    private var parentId: Int = 0,
+    var pos: ArrayList<Double> = arrayListOf(0.0, 0.0, 0.0)
+) {
     var idNum = newId
     val rbMarkerList = arrayListOf<RBMarker>()
 
-    fun setName(newName:String) {
+    fun setName(newName: String) {
         szName = newName
     }
 
-    fun setId(newId:Int) {
+    fun setId(newId: Int) {
         idNum = newId
     }
 
-    fun setParentId(newParentId:Int) {
+    fun setParentId(newParentId: Int) {
         parentId = newParentId
     }
 
-    fun setPos(pX:Double, pY:Double, pZ:Double) {
-        pos = arrayListOf(pX,pY,pZ)
+    fun setPos(pX: Double, pY: Double, pZ: Double) {
+        pos = arrayListOf(pX, pY, pZ)
     }
 
-    fun getNumMarkers():Int{
+    fun getNumMarkers(): Int {
         return rbMarkerList.size
     }
 
-    fun addRbMarker(newRbMaker:RBMarker) : Int {
+    fun addRbMarker(newRbMaker: RBMarker): Int {
         rbMarkerList.add(newRbMaker)
         return getNumMarkers()
     }
+
     fun getAsString(tabStr: String = "  ", level: Int = 0): String {
         val outTabStr = getTabStr(tabStr, level)
         val outTabStr2 = getTabStr(tabStr, level + 1)
@@ -250,57 +258,59 @@ class RigidBodyDescription(var szName:String = "", newId:Int = 0, private var pa
     }
 }
 
-class SkeletonDescription(private var name: String ="", val newId: Int =0){
+class SkeletonDescription(private var name: String = "", newId: Int = 0) {
     var idNum = newId
     val rigidBodyDescriptionList = arrayListOf<RigidBodyDescription>()
 
-    fun setName(newName: String){
-        name=newName
+    fun setName(newName: String) {
+        name = newName
     }
 
-    fun setId( newId : Int){
+    fun setId(newId: Int) {
         idNum = newId
     }
 
-    fun addRigidBodyDescription(rigidBodyDescription:RigidBodyDescription):Int{
+    fun addRigidBodyDescription(rigidBodyDescription: RigidBodyDescription): Int {
         rigidBodyDescriptionList.add(rigidBodyDescription)
         return rigidBodyDescriptionList.size
     }
 
     fun getAsString(tabStr: String = "  ", level: Int = 0): String {
         val outTabStr = getTabStr(tabStr, level)
-        val outTabStr2 = getTabStr(tabStr, level+1)
+        val outTabStr2 = getTabStr(tabStr, level + 1)
         var outString = ""
         outString += "%sName                    : %s\n".format(outTabStr, name)
         outString += "%sID                      : %d\n".format(outTabStr, idNum)
         val numBones = rigidBodyDescriptionList.size
         outString += "%sRigid Body (Bone) Count : %d\n".format(outTabStr, numBones)
-        for (i in 0 until numBones){
+        for (i in 0 until numBones) {
             outString += "%sRigid Body (Bone) %d\n".format(outTabStr2, i)
-            outString += rigidBodyDescriptionList[i].getAsString(tabStr,level+2)
+            outString += rigidBodyDescriptionList[i].getAsString(tabStr, level + 2)
         }
         return outString
     }
 }
 
-class ForcePlateDescription(newId: Int =0, private var serialNumber: String ="") {
+class ForcePlateDescription(newId: Int = 0, private var serialNumber: String = "") {
     var idNum = newId
     var width = 0.0
     var length = 0.0
-    var position = arrayListOf(0.0,0.0,0.0)
-    private var calMatrix = ArrayList(Collections.nCopies(12, ArrayList(Collections.nCopies(12,0.0))))
-//    val calMatrix= [[0.0 for col in 0 until 12] for row in 0 until 12]
-    private var corners = ArrayList(Collections.nCopies(4, ArrayList(Collections.nCopies(3,0.0))))
-//    val corners = [[0.0 for col in 0 until 3] for row in 0 until 4]
+    var position = arrayListOf(0.0, 0.0, 0.0)
+    private var calMatrix = ArrayList(Collections.nCopies(12, ArrayList(Collections.nCopies(12, 0.0))))
+
+    //    val calMatrix= [[0.0 for col in 0 until 12] for row in 0 until 12]
+    private var corners = ArrayList(Collections.nCopies(4, ArrayList(Collections.nCopies(3, 0.0))))
+
+    //    val corners = [[0.0 for col in 0 until 3] for row in 0 until 4]
     private var plateType = 0
     private var channelDataType = 0
-    val channelList= arrayListOf<String>() //todo what is channel type
+    val channelList = arrayListOf<String>() //todo what is channel type
 
-    fun setId(newId:Int) {
+    fun setId(newId: Int) {
         idNum = newId
     }
 
-    fun setSerialNumber(newSerialNumber:String) {
+    fun setSerialNumber(newSerialNumber: String) {
         serialNumber = newSerialNumber
     }
 
@@ -309,11 +319,11 @@ class ForcePlateDescription(newId: Int =0, private var serialNumber: String ="")
         length = newLength
     }
 
-    fun setOrigin(pX:Double, pY:Double, pZ:Double) {
-        position = arrayListOf(pX,pY,pZ)
+    fun setOrigin(pX: Double, pY: Double, pZ: Double) {
+        position = arrayListOf(pX, pY, pZ)
     }
 
-    fun setCalMatrix(newCalMatrix:ArrayList<ArrayList<Double>>){
+    fun setCalMatrix(newCalMatrix: ArrayList<ArrayList<Double>>) {
         calMatrix = newCalMatrix
     }
 
@@ -321,7 +331,7 @@ class ForcePlateDescription(newId: Int =0, private var serialNumber: String ="")
         corners = newCorners
     }
 
-    fun setPlateType(newPlateType:Int) {
+    fun setPlateType(newPlateType: Int) {
         plateType = newPlateType
     }
 
@@ -329,7 +339,7 @@ class ForcePlateDescription(newId: Int =0, private var serialNumber: String ="")
         channelDataType = newChannelDataType
     }
 
-    fun addChannelName(channelName:String): Int {
+    fun addChannelName(channelName: String): Int {
         channelList.add(channelName)
         return channelList.size
     }
@@ -342,13 +352,14 @@ class ForcePlateDescription(newId: Int =0, private var serialNumber: String ="")
         outString += "%sCal Matrix:\n".format(outTabStr)
         for (i in 0 until 12) {
             outString += "%s%2d %3.3e %3.3e %3.3e %3.3e %3.3e %3.3e %3.3e %3.3e %3.3e %3.3e %3.3e %3.3e\n".format(
-            outTabStr2, i,
-            calMatrix[i][0], calMatrix[i][1],
-            calMatrix[i][2], calMatrix[i][3],
-            calMatrix[i][4], calMatrix[i][5],
-            calMatrix[i][6], calMatrix[i][7],
-            calMatrix[i][8], calMatrix[i][9],
-            calMatrix[i][10], calMatrix[i][11])
+                outTabStr2, i,
+                calMatrix[i][0], calMatrix[i][1],
+                calMatrix[i][2], calMatrix[i][3],
+                calMatrix[i][4], calMatrix[i][5],
+                calMatrix[i][6], calMatrix[i][7],
+                calMatrix[i][8], calMatrix[i][9],
+                calMatrix[i][10], calMatrix[i][11]
+            )
         }
         return outString
     }
@@ -403,47 +414,53 @@ class ForcePlateDescription(newId: Int =0, private var serialNumber: String ="")
 }
 
 /** Device Description class */
-class DeviceDescription(newId:Int, private var name:String, val serialNumber:String, val deviceType:Int, val channelDataType:Int){
-        var idNum = newId
-        val channelList = arrayListOf<String>()
+class DeviceDescription(
+    newId: Int,
+    private var name: String,
+    val serialNumber: String,
+    val deviceType: Int,
+    val channelDataType: Int
+) {
+    var idNum = newId
+    val channelList = arrayListOf<String>()
 
     /** Set the device id */
-    fun setId(newId:Int){
-        idNum=newId
+    fun setId(newId: Int) {
+        idNum = newId
     }
 
     /** Set the Device name */
-    fun setName(newName:String){
-        name=newName
+    fun setName(newName: String) {
+        name = newName
     }
 
     /** Add channel name to channelList */
-    fun addChannelName(channelName:String): Int {
+    fun addChannelName(channelName: String): Int {
         channelList.add(channelName)
         return channelList.size
     }
 
     /** Get Device Description as string */
-    fun getAsString(tabStr: String = "  ", level: Int =0): String {
+    fun getAsString(tabStr: String = "  ", level: Int = 0): String {
         val outTabStr = getTabStr(tabStr, level)
-        val outTabStr2 = getTabStr(tabStr, level+1)
+        val outTabStr2 = getTabStr(tabStr, level + 1)
         var outString = ""
-        outString +="%sID                 : %5d\n".format(outTabStr, idNum)
-        outString +="%sName               : %s\n".format(outTabStr,name)
-        outString +="%sSerial Number      : %s\n".format(outTabStr,serialNumber)
-        outString +="%sDevice Type        : %d\n".format(outTabStr,deviceType)
-        outString +="%sChannel Data Type  : %d\n".format(outTabStr, channelDataType)
+        outString += "%sID                 : %5d\n".format(outTabStr, idNum)
+        outString += "%sName               : %s\n".format(outTabStr, name)
+        outString += "%sSerial Number      : %s\n".format(outTabStr, serialNumber)
+        outString += "%sDevice Type        : %d\n".format(outTabStr, deviceType)
+        outString += "%sChannel Data Type  : %d\n".format(outTabStr, channelDataType)
         val numChannels = channelList.size
-        outString +="%sNumber of Channels : %d\n".format(outTabStr, numChannels)
-        for (i in 0 until numChannels){
-            outString+="%sChannel %2d Name : %s\n".format(outTabStr2, i, channelList[i])
+        outString += "%sNumber of Channels : %d\n".format(outTabStr, numChannels)
+        for (i in 0 until numChannels) {
+            outString += "%sChannel %2d Name : %s\n".format(outTabStr2, i, channelList[i])
         }
         return outString
     }
 }
 
 /** Camera Description class */
-class CameraDescription(val name:String, positionVec3:ArrayList<Double>, orientationQuat:ArrayList<Double>) {
+class CameraDescription(val name: String, positionVec3: ArrayList<Double>, orientationQuat: ArrayList<Double>) {
     val position = positionVec3
     val orientation = orientationQuat
 
@@ -467,8 +484,8 @@ class CameraDescription(val name:String, positionVec3:ArrayList<Double>, orienta
 // cDataDescriptions
 // Full data descriptions
 /** Data Descriptions class */
-class DataDescriptions(var orderNum: Int = 0){
-    val dataOrderDict = mutableMapOf<String,Pair<String,Int>>()
+class DataDescriptions(var orderNum: Int = 0) {
+    val dataOrderDict = mutableMapOf<String, Pair<String, Int>>()
     val markerSetList = arrayListOf<MarkerSetDescription>()
     val rigidBodyList = arrayListOf<RigidBodyDescription>()
     val skeletonList = arrayListOf<SkeletonDescription>()
@@ -477,103 +494,110 @@ class DataDescriptions(var orderNum: Int = 0){
     val cameraList = arrayListOf<CameraDescription>()
 
     /** Generate the name for the order list based on the current length of the list */
-    fun generateOrderName():String{
+    fun generateOrderName(): String {
         // should be a one up counter instead of based on length of dataOrderDict
-        val orderName="data_%03d".format(orderNum)
+        val orderName = "data_%03d".format(orderNum)
         orderNum += 1
         return orderName
     }
 
     // Add Marker Set
     /** Add a marker set */
-    fun addMarkerSet(newMarkerSet:MarkerSetDescription){
+    fun addMarkerSet(newMarkerSet: MarkerSetDescription) {
         val orderName = generateOrderName()
 
         // generate order entry
         val pos = markerSetList.size
-        dataOrderDict[orderName]=Pair("marker_set_list", pos)
+        dataOrderDict[orderName] = Pair("marker_set_list", pos)
         markerSetList.add(newMarkerSet)
     }
 
     // Add Rigid Body
     /** Add a rigid body */
-    fun addRigidBody(newRigidBody:RigidBodyDescription){
+    fun addRigidBody(newRigidBody: RigidBodyDescription) {
         val orderName = generateOrderName()
 
         // generate order entry
         val pos = rigidBodyList.size
-        dataOrderDict[orderName]=Pair("rigid_body_list", pos)
+        dataOrderDict[orderName] = Pair("rigid_body_list", pos)
         rigidBodyList.add(newRigidBody)
     }
 
     // Add a skeleton
     /** Add a skeleton */
-    fun addSkeleton(newSkeleton:SkeletonDescription){
+    fun addSkeleton(newSkeleton: SkeletonDescription) {
         val orderName = generateOrderName()
 
         // generate order entry
         val pos = skeletonList.size
-        dataOrderDict[orderName]=Pair("skeleton_list", pos)
+        dataOrderDict[orderName] = Pair("skeleton_list", pos)
         skeletonList.add(newSkeleton)
     }
 
 
     // Add a force plate
     /** Add a force plate */
-    fun addForcePlate(newForcePlate:ForcePlateDescription){
+    fun addForcePlate(newForcePlate: ForcePlateDescription) {
         val orderName = generateOrderName()
 
         // generate order entry
         val pos = forcePlateList.size
-        dataOrderDict[orderName]=Pair("force_plate_list", pos)
+        dataOrderDict[orderName] = Pair("force_plate_list", pos)
         forcePlateList.add(newForcePlate)
     }
 
     /** addDevice - Add a device */
-    fun addDevice(newDevice:DeviceDescription){
+    fun addDevice(newDevice: DeviceDescription) {
         val orderName = generateOrderName()
 
         // generate order entry
         val pos = deviceList.size
-        dataOrderDict[orderName]=Pair("device_list", pos)
+        dataOrderDict[orderName] = Pair("device_list", pos)
         deviceList.add(newDevice)
     }
 
     /** Add a new camera */
-    fun addCamera(newCamera:CameraDescription){
+    fun addCamera(newCamera: CameraDescription) {
         val orderName = generateOrderName()
 
         // generate order entry
         val pos = cameraList.size
-        dataOrderDict[orderName]=Pair("camera_list", pos)
+        dataOrderDict[orderName] = Pair("camera_list", pos)
         cameraList.add(newCamera)
     }
 
     /** Add data based on data type */
-    fun addData(newData:Any?){
+    fun addData(newData: Any?) {
         var dataType = newData?.javaClass
         when (newData) {
             is MarkerSetDescription -> {
                 addMarkerSet(newData)
             }
+
             is RigidBodyDescription -> {
                 addRigidBody(newData)
             }
+
             is SkeletonDescription -> {
                 addSkeleton(newData)
             }
+
             is ForcePlateDescription -> {
                 addForcePlate(newData)
             }
+
             is DeviceDescription -> {
                 addDevice(newData)
             }
+
             is CameraDescription -> {
                 addCamera(newData)
             }
+
             null -> {
                 dataType = Unit.javaClass
             }
+
             else -> {
                 println("ERROR: Type %s unknown".format(dataType.toString()))
             }
@@ -581,34 +605,34 @@ class DataDescriptions(var orderNum: Int = 0){
     }
 
     /** Determine list name and position of the object */
-    fun getObjectFromList(listName:String, posNum:Int): Any? {
-        return if (listName =="marker_set_list" && posNum < markerSetList.size){
+    fun getObjectFromList(listName: String, posNum: Int): Any? {
+        return if (listName == "marker_set_list" && posNum < markerSetList.size) {
             markerSetList[posNum]
-        }else if (listName =="rigid_body_list" && posNum < rigidBodyList.size){
+        } else if (listName == "rigid_body_list" && posNum < rigidBodyList.size) {
             rigidBodyList[posNum]
-        }else if (listName =="skeleton_list" && posNum < skeletonList.size){
+        } else if (listName == "skeleton_list" && posNum < skeletonList.size) {
             skeletonList[posNum]
-        }else if (listName =="force_plate_list" && posNum < forcePlateList.size){
+        } else if (listName == "force_plate_list" && posNum < forcePlateList.size) {
             forcePlateList[posNum]
-        }else if (listName =="device_list" && posNum < deviceList.size){
+        } else if (listName == "device_list" && posNum < deviceList.size) {
             deviceList[posNum]
-        }else if (listName =="camera_list" && posNum < cameraList.size){
+        } else if (listName == "camera_list" && posNum < cameraList.size) {
             cameraList[posNum]
-        }else{
+        } else {
             null
         }
     }
 
     /** Ensure data comes back as a string */
     fun getAsString(tabStr: String = "  ", level: Int = 0): String {
-        val outTabStr = getTabStr(tabStr,level)
-        val outTabStr2 = getTabStr(tabStr,level+1)
-        val outTabStr3 = getTabStr(tabStr,level+2)
+        val outTabStr = getTabStr(tabStr, level)
+        val outTabStr2 = getTabStr(tabStr, level + 1)
+        val outTabStr3 = getTabStr(tabStr, level + 2)
         var outString = ""
-        val numDataSets=dataOrderDict.size
-        outString+="%sNumber of Data Sets: %d\n".format(outTabStr, numDataSets)
-        var i=0
-        for ( tmp in dataOrderDict.entries) {
+        val numDataSets = dataOrderDict.size
+        outString += "%sNumber of Data Sets: %d\n".format(outTabStr, numDataSets)
+        var i = 0
+        for (tmp in dataOrderDict.entries) {
             //tmpName,tmpNum=dataOrderDict[dataSet]
             val tmpKey = tmp.key
             val tmpName = tmp.value.first
@@ -621,15 +645,15 @@ class DataDescriptions(var orderNum: Int = 0){
             }
             //outString += "%s%s %s %d\n".format(outTabStr2, dataSet, tmpName,tmpNum)
             outString += "%s%s %s %s\n".format(outTabStr2, tmpKey, tmpName, tmpNum)
-            if (tmpObject != null) {
-                try{
+            outString += if (tmpObject != null) {
+                try {
                     val method = tmpObject.javaClass.getMethod("getAsString", String::class.java, Int::class.java)
-                    outString += method.invoke(tmpObject, tabStr, level+2) as String
-                } catch (e:Exception){
+                    method.invoke(tmpObject, tabStr, level + 2) as String
+                } catch (e: Exception) {
                     throw RuntimeException(e)
                 }
             } else {
-                outString += "%s%s %s %s not found\n".format(outTabStr3, tmpKey, tmpName, tmpNum)
+                "%s%s %s %s not found\n".format(outTabStr3, tmpKey, tmpName, tmpNum)
             }
             outString += "\n"
             i += 1
@@ -640,7 +664,7 @@ class DataDescriptions(var orderNum: Int = 0){
 // cDataDescriptions END
 
 /** generateMarkerSetDescription - Testing functions */
-fun generateMarkerSetDescription(setNum: Int =0): MarkerSetDescription {
+fun generateMarkerSetDescription(setNum: Int = 0): MarkerSetDescription {
     val markerSetDescription = MarkerSetDescription()
     markerSetDescription.setName("MarkerSetName%03d".format(setNum))
     markerSetDescription.addMarkerName("MarkerName%03d_0".format(setNum))
@@ -651,33 +675,27 @@ fun generateMarkerSetDescription(setNum: Int =0): MarkerSetDescription {
 }
 
 /** generateRbMarker - Generate rigid body marker based on marker number */
-fun generateRbMarker(markerNum: Int =0): RBMarker {
+fun generateRbMarker(markerNum: Int = 0): RBMarker {
     val markerNumMod = markerNum % 4
-    val markerName="RBMarker_%03d".format(markerNum)
-    val markerActiveLabel = markerNum+10000
-    var markerPos= arrayListOf<Double>(1.0,4.0,9.0)
+    val markerName = "RBMarker_%03d".format(markerNum)
+    val markerActiveLabel = markerNum + 10000
+    var markerPos = arrayListOf(1.0, 4.0, 9.0)
     when (markerNumMod) {
-        1 -> {
-            markerPos=arrayListOf<Double>(1.0, 8.0, 27.0)
-        }
-        2 -> {
-            markerPos=arrayListOf<Double>(3.1, 4.1, 5.9)
-        }
-        3 -> {
-            markerPos=arrayListOf<Double>(1.0, 3.0, 6.0)
-        }
+        1 -> markerPos = arrayListOf(1.0, 8.0, 27.0)
+        2 -> markerPos = arrayListOf(3.1, 4.1, 5.9)
+        3 -> markerPos = arrayListOf(1.0, 3.0, 6.0)
     }
 
     return RBMarker(markerName, markerActiveLabel, markerPos)
 }
 
 /** generateRigidBodyDescription - Generate Rigid Body Description Data */
-fun generateRigidBodyDescription(rbdNum: Int =0): RigidBodyDescription {
-    val rbd=RigidBodyDescription()
+fun generateRigidBodyDescription(rbdNum: Int = 0): RigidBodyDescription {
+    val rbd = RigidBodyDescription()
     rbd.setName("rigidBodyDescription_%03d".format(rbdNum))
     rbd.setId(3141)
     rbd.setParentId(314)
-    rbd.setPos(1.0,4.0,9.0)
+    rbd.setPos(1.0, 4.0, 9.0)
     rbd.addRbMarker(generateRbMarker(0))
     rbd.addRbMarker(generateRbMarker(1))
     rbd.addRbMarker(generateRbMarker(2))
@@ -686,8 +704,8 @@ fun generateRigidBodyDescription(rbdNum: Int =0): RigidBodyDescription {
 }
 
 /** generateSkeletonDescription -Generate Test SkeletonDescription Data */
-fun generateSkeletonDescription(skeletonNum: Int =0): SkeletonDescription {
-    val skelDesc=SkeletonDescription("SkeletonDescription_%03d".format(skeletonNum),skeletonNum)
+fun generateSkeletonDescription(skeletonNum: Int = 0): SkeletonDescription {
+    val skelDesc = SkeletonDescription("SkeletonDescription_%03d".format(skeletonNum), skeletonNum)
     //generate some rigid bodies to add
     skelDesc.addRigidBodyDescription(generateRigidBodyDescription(0))
     skelDesc.addRigidBodyDescription(generateRigidBodyDescription(1))
@@ -699,79 +717,80 @@ fun generateSkeletonDescription(skeletonNum: Int =0): SkeletonDescription {
 }
 
 /** generateForcePlateDescription - Generate Test ForcePlateDescription Data */
-fun generateForcePlateDescription(forcePlateNum: Int =0): ForcePlateDescription {
-    val fpId=forcePlateNum
+fun generateForcePlateDescription(forcePlateNum: Int = 0): ForcePlateDescription {
     val random = Random(forcePlateNum)
 
-    val serialNumber="S/N_%5d".format(random.nextInt(0,99999))
-    val width=random.nextDouble(0.0,10.0)
-    val length=random.nextDouble(0.0,10.0)
-    val origin = arrayListOf<Double>(random.nextDouble(0.0,100.0),random.nextDouble(0.0,100.0),random.nextDouble(0.0,100.0))
+    val serialNumber = "S/N_%5d".format(random.nextInt(0, 99999))
+    val width = random.nextDouble(0.0, 10.0)
+    val length = random.nextDouble(0.0, 10.0)
+    val origin =
+        arrayListOf<Double>(random.nextDouble(0.0, 100.0), random.nextDouble(0.0, 100.0), random.nextDouble(0.0, 100.0))
     val corners = arrayListOf(
         arrayListOf(0.0, 0.0, 0.0),
         arrayListOf(0.0, 1.0, 0.0),
         arrayListOf(1.0, 1.0, 0.0),
-        arrayListOf(1.0, 0.0, 0.0))
-    val fpDesc=ForcePlateDescription(fpId, serialNumber)
+        arrayListOf(1.0, 0.0, 0.0)
+    )
+    val fpDesc = ForcePlateDescription(forcePlateNum, serialNumber)
     fpDesc.setDimensions(width, length)
-    fpDesc.setOrigin(origin[0],origin[1],origin[2])
+    fpDesc.setOrigin(origin[0], origin[1], origin[2])
 //    fpDesc.setCalMatrix(calMatrix)
     fpDesc.setCorners(corners)
-    for (i in 0 until 3){
+    for (i in 0 until 3) {
         fpDesc.addChannelName("channel_%03d".format(i))
     }
     return fpDesc
 }
 
 /** generateDeviceDescription- Generate Test DeviceDescription Data */
-fun generateDeviceDescription(devNum: Int =0): DeviceDescription {
-    val newId=0
-    val name="Device%03d".format(devNum)
-    val serialNumber="SerialNumber%03d".format(devNum)
-    val deviceType=devNum%4
-    val channelDataType=devNum%5
-    val devDesc = DeviceDescription(newId,name, serialNumber,deviceType,channelDataType)
-    for (i in 0 until channelDataType+3){
+fun generateDeviceDescription(devNum: Int = 0): DeviceDescription {
+    val newId = 0
+    val name = "Device%03d".format(devNum)
+    val serialNumber = "SerialNumber%03d".format(devNum)
+    val deviceType = devNum % 4
+    val channelDataType = devNum % 5
+    val devDesc = DeviceDescription(newId, name, serialNumber, deviceType, channelDataType)
+    for (i in 0 until channelDataType + 3) {
         devDesc.addChannelName("channel_name_%02d".format(i))
     }
     return devDesc
 }
 
 /** generateCameraDescription - Generate Test CameraDescription data */
-fun generateCameraDescription(camNum: Int =0): CameraDescription {
-    val posVec3= arrayListOf(1.0,2.0,3.0)
-    val orientationQuat=arrayListOf(1.0,2.0,3.0,4.0)
+fun generateCameraDescription(camNum: Int = 0): CameraDescription {
+    val posVec3 = arrayListOf(1.0, 2.0, 3.0)
+    val orientationQuat = arrayListOf(1.0, 2.0, 3.0, 4.0)
     return CameraDescription("Camera_%03d".format(camNum), posVec3, orientationQuat)
 }
 
 
 //generateDataDescriptions - Generate Test DataDescriptions
 /** Generate data descriptions */
-fun generateDataDescriptions(dataDescNum: Int =0): DataDescriptions {
+fun generateDataDescriptions(dataDescNum: Int = 0): DataDescriptions {
     val dataDescs = DataDescriptions()
 
-    dataDescs.addData(generateMarkerSetDescription(dataDescNum+0))
-    dataDescs.addData(generateMarkerSetDescription(dataDescNum+1))
+    dataDescs.addData(generateMarkerSetDescription(dataDescNum + 0))
+    dataDescs.addData(generateMarkerSetDescription(dataDescNum + 1))
 
-    dataDescs.addData(generateRigidBodyDescription(dataDescNum+0))
-    dataDescs.addData(generateRigidBodyDescription(dataDescNum+1))
+    dataDescs.addData(generateRigidBodyDescription(dataDescNum + 0))
+    dataDescs.addData(generateRigidBodyDescription(dataDescNum + 1))
 
-    dataDescs.addSkeleton(generateSkeletonDescription(dataDescNum+3))
-    dataDescs.addSkeleton(generateSkeletonDescription(dataDescNum+9))
-    dataDescs.addSkeleton(generateSkeletonDescription(dataDescNum+27))
+    dataDescs.addSkeleton(generateSkeletonDescription(dataDescNum + 3))
+    dataDescs.addSkeleton(generateSkeletonDescription(dataDescNum + 9))
+    dataDescs.addSkeleton(generateSkeletonDescription(dataDescNum + 27))
 
-    dataDescs.addForcePlate(generateForcePlateDescription(dataDescNum+123))
-    dataDescs.addForcePlate(generateForcePlateDescription(dataDescNum+87))
-    dataDescs.addForcePlate(generateForcePlateDescription(dataDescNum+21))
+    dataDescs.addForcePlate(generateForcePlateDescription(dataDescNum + 123))
+    dataDescs.addForcePlate(generateForcePlateDescription(dataDescNum + 87))
+    dataDescs.addForcePlate(generateForcePlateDescription(dataDescNum + 21))
 
-    dataDescs.addDevice(generateDeviceDescription(dataDescNum+0))
-    dataDescs.addDevice(generateDeviceDescription(dataDescNum+2))
-    dataDescs.addDevice(generateDeviceDescription(dataDescNum+4))
+    dataDescs.addDevice(generateDeviceDescription(dataDescNum + 0))
+    dataDescs.addDevice(generateDeviceDescription(dataDescNum + 2))
+    dataDescs.addDevice(generateDeviceDescription(dataDescNum + 4))
 
-    dataDescs.addCamera(generateCameraDescription(dataDescNum+0))
-    dataDescs.addCamera(generateCameraDescription(dataDescNum+10))
-    dataDescs.addCamera(generateCameraDescription(dataDescNum+3))
-    dataDescs.addCamera(generateCameraDescription(dataDescNum+7))
+    dataDescs.addCamera(generateCameraDescription(dataDescNum + 0))
+    dataDescs.addCamera(generateCameraDescription(dataDescNum + 10))
+    dataDescs.addCamera(generateCameraDescription(dataDescNum + 3))
+    dataDescs.addCamera(generateCameraDescription(dataDescNum + 7))
     return dataDescs
 }
 

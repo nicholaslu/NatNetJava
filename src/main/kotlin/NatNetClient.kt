@@ -11,26 +11,54 @@ import java.nio.channels.IllegalBlockingModeException
 import java.util.*
 import kotlin.math.min
 
-
-fun intFromBytes(data: ByteArray, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN): Int {
+@ExperimentalUnsignedTypes
+fun intFromBytes(data: ByteArray, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN, signed: Boolean = false): Int {
     var result = 0
-    if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
-        for (i in data.indices) {
-            result += data[i].toInt() shl 8 * i
+    if (signed) {
+        if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
+            for (i in data.indices) {
+                result += data[i].toInt() shl 8 * i
+            }
+        } else {
+            for (i in data.indices) {
+                result += data[i].toInt() shl 8 * (data.size - i - 1)
+            }
         }
     } else {
-        for (i in data.indices) {
-            result += data[i].toInt() shl 8 * (data.size - i - 1)
+        val UData = data.asUByteArray()
+        if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
+            for (i in UData.indices) {
+                result += UData[i].toInt() shl 8 * i
+            }
+        } else {
+            for (i in UData.indices) {
+                result += UData[i].toInt() shl 8 * (data.size - i - 1)
+            }
         }
     }
     return result
 }
 
-fun intToBytes(data: Int, length: Int, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN): ByteArray {
-    return if (length == 2) {
-        ByteBuffer.allocate(length).order(byteOrder).putShort(data.toShort()).array()
+@ExperimentalUnsignedTypes
+fun intToBytes(data: Int, length: Int, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN, signed: Boolean = false): ByteArray {
+    if (signed) {
+        return if (length == 2) {
+            ByteBuffer.allocate(length).order(byteOrder).putShort(data.toShort()).array()
+        } else {
+            ByteBuffer.allocate(length).order(byteOrder).putInt(data).array()
+        }
     } else {
-        ByteBuffer.allocate(length).order(byteOrder).putInt(data).array()
+        var dividend = data
+        val bytes = UByteArray(length)
+        for (i in 0 until length) {
+            val rem = dividend % 256
+            when (byteOrder) {
+                ByteOrder.LITTLE_ENDIAN -> bytes[i] = rem.toUByte()
+                ByteOrder.BIG_ENDIAN -> bytes[length - i - 1] = rem.toUByte()
+            }
+            dividend /= 256
+        }
+        return bytes.asByteArray()
     }
 }
 
@@ -62,13 +90,12 @@ fun traceMf(vararg args: Any) {
 }
 
 fun getMessageId(data: ByteArray): Int {
-    val messageId = intFromBytes(data.sliceArray(0 until 2), ByteOrder.LITTLE_ENDIAN)
-    return messageId
+    return intFromBytes(data.sliceArray(0 until 2), ByteOrder.LITTLE_ENDIAN)
 }
 
 // Create structs for reading various object types to speed up parsing.
 //Vector2 = struct.Struct( '<ff' )
-class Vector2() {
+class Vector2 {
     companion object {
         private const val size = 2
         fun pack(data: ArrayList<Double>): ByteArray {
@@ -87,7 +114,7 @@ class Vector2() {
 }
 
 //Vector3 = struct.Struct( '<fff' )
-class Vector3() {
+class Vector3 {
     companion object {
         private const val size = 3
         fun pack(data: ArrayList<Double>): ByteArray {
@@ -106,7 +133,7 @@ class Vector3() {
 }
 
 //Quaternion = struct.Struct( '<ffff' )
-class Quaternion() {
+class Quaternion {
     companion object {
         private const val size = 4
         fun pack(data: ArrayList<Double>): ByteArray {
@@ -125,7 +152,7 @@ class Quaternion() {
 }
 
 //FloatValue = struct.Struct( '<f' )
-class FloatValue() {
+class FloatValue {
     companion object {
         fun pack(data: Double): ByteArray {
             val buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
@@ -140,7 +167,7 @@ class FloatValue() {
 }
 
 //DoubleValue = struct.Struct( '<d' )
-class DoubleValue() {
+class DoubleValue {
     companion object {
         fun pack(data: Double): ByteArray {
             val buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN)
@@ -155,12 +182,12 @@ class DoubleValue() {
 }
 
 //NNIntValue = struct.Struct( '<I') //todo later
-class NNIntValue() {
+class NNIntValue {
     companion object {
 //        fun pack(data: UInt): ByteArray {
-//            val buffer = ByteBuffer.allocate(8)
+////            val buffer = ByteBuffer.allocate(8)
 ////            buffer.putInt(data.toByte()&0xffffffffL)
-//            return buffer.array()
+////            return buffer.array()
 //        }
 //        fun unpack(bytes: ByteArray): UInt {
 ////            return ByteBuffer.wrap(bytes).getInt()
@@ -169,9 +196,9 @@ class NNIntValue() {
 }
 
 //FPCalMatrixRow = struct.Struct( '<ffffffffffff' )
-class FPCalMatrixRow() {
+class FPCalMatrixRow {
     companion object {
-        const val size = 12
+        private const val size = 12
         fun pack(data: ArrayList<Double>): ByteArray {
             val buffer = ByteBuffer.allocate(size * 4).order(ByteOrder.LITTLE_ENDIAN)
             data.forEach { i -> buffer.putFloat(i.toFloat()) }
@@ -190,7 +217,7 @@ class FPCalMatrixRow() {
 //FPCorners = struct.Struct( '<ffffffffffff')
 class FPCorners() {
     companion object {
-        const val size = 12
+        private const val size = 12
         fun pack(data: ArrayList<Double>): ByteArray {
             val buffer = ByteBuffer.allocate(size * 4).order(ByteOrder.LITTLE_ENDIAN)
             data.forEach { i -> buffer.putFloat(i.toFloat()) }
@@ -206,7 +233,7 @@ class FPCorners() {
     }
 }
 
-class NatNetClient() {
+class NatNetClient {
     // printLevel = 0 off
     // printLevel = 1 on
     // printLevel = >1 on / print every nth mocap frame
@@ -466,11 +493,6 @@ class NatNetClient() {
         } else {
             // Unicast case
             val result = DatagramSocket(null)
-//            result = socket.socket(
-//                socket.AF_INET,     // Internet
-//                socket.SOCK_DGRAM,
-//                socket.IPPROTO_UDP
-//            )
             result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
 //            result.bind(InetSocketAddress(InetAddress.getByName(localIpAddress), port))
             try {
@@ -486,12 +508,7 @@ class NatNetClient() {
                 println("ERROR: data socket UnknownHostException occurred")
             }
             if (multicastAddress != "255.255.255.255") {
-//                result.setOption(StandardSocketOptions.) //todo how to IP_ADD_MEMBERSHIP
-//                result.setsockopt(
-//                    socket.IPPROTO_IP,
-//                    socket.IP_ADD_MEMBERSHIP,
-//                    socket.inetAton(multicastAddress) + socket.inetAton(localIpAddress)
-//                )
+//                result.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.multicast_address) + socket.inet_aton(self.local_ip_address)) //todo need to join multicast group?
             }
             return result
         }
@@ -510,7 +527,7 @@ class NatNetClient() {
 
         // Position and orientation
 //        pos = Vector3.unpack(data.sliceArray(offset until offset+12))
-        val pos = Vector3.unpack(data.sliceArray(offset until offset + 12))
+        var pos = Vector3.unpack(data.sliceArray(offset until offset + 12))
         offset += 12
         traceMf("\tPosition    : [%3.2f, %3.2f, %3.2f]".format(pos[0], pos[1], pos[2]))
 
@@ -540,7 +557,7 @@ class NatNetClient() {
 
             // Marker positions
             for (i in markerCountRange) {
-                val pos = Vector3.unpack(data.sliceArray(offset until offset + 12))
+                pos = Vector3.unpack(data.sliceArray(offset until offset + 12))
                 offset += 12
                 traceMf("\tMarker", i, ":", pos[0], ",", pos[1], ",", pos[2])
                 rbMarkerList[i].pos = pos
@@ -578,9 +595,7 @@ class NatNetClient() {
 
         // Version 2.6 and later
         if (((major == 2) && (minor >= 6)) || major > 2) {
-            val param =
-                ByteBuffer.wrap(data.sliceArray(offset until offset + 2)).order(ByteOrder.LITTLE_ENDIAN).getShort()
-                    .toInt()
+            val param = ByteBuffer.wrap(data.sliceArray(offset until offset + 2)).getShort().toInt()
             val trackingValid = (param and 0x01) != 0
             offset += 2
             var isValidStr = "false"
@@ -731,9 +746,9 @@ class NatNetClient() {
         val labeledMarkerData = LabeledMarkerData()
         var offset = 0
         // Labeled markers (Version 2.3 and later)
-        var labeledMarkerCount = 0
+        val labeledMarkerCount: Int
         if ((major == 2 && minor > 3) || major > 2) {
-            val labeledMarkerCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            labeledMarkerCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceMf("Labeled Marker Count:", labeledMarkerCount)
             for (i in 0 until labeledMarkerCount) {
@@ -751,9 +766,7 @@ class NatNetClient() {
                 // Version 2.6 and later
                 var param = 0
                 if ((major == 2 && minor >= 6) || major > 2) {
-                    param = ByteBuffer.wrap(data.sliceArray(offset until offset + 2)).order(ByteOrder.LITTLE_ENDIAN)
-                        .getShort()
-                        .toInt()
+                    param = ByteBuffer.wrap(data.sliceArray(offset until offset + 2)).getShort().toInt()
                     offset += 2
 //                    val occluded = ( param and 0x01 ) != 0
 //                    val pointCloudSolved = ( param and 0x02 ) != 0
@@ -787,7 +800,7 @@ class NatNetClient() {
         val nFramesShowMax = 4
         var offset = 0
         // Force Plate data (version 2.9 and later)
-        var forcePlateCount = 0
+        val forcePlateCount: Int
         if ((major == 2 && minor >= 9) || major > 2) {
             forcePlateCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
@@ -946,8 +959,7 @@ class NatNetClient() {
 
 
         // Frame parameters
-        val param = ByteBuffer.wrap(data.sliceArray(offset until offset + 2)).order(ByteOrder.LITTLE_ENDIAN).getShort()
-            .toInt()
+        val param = ByteBuffer.wrap(data.sliceArray(offset until offset + 2)).getShort().toInt()
         val isRecording = (param and 0x01) != 0
         val trackedModelsChanged = (param and 0x02) != 0
         offset += 2
@@ -1079,7 +1091,7 @@ class NatNetClient() {
 
         var offset = 0
 
-        val (name, separator, remainder) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
+        val (name, _, _) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
         offset += name.length + 1
         traceDd("Marker Set Name: %s".format(name))
         msDesc.setName(name)
@@ -1188,7 +1200,7 @@ class NatNetClient() {
         var offset = 0
 
         //Name
-        val (name, separator, remainder) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
+        val (name, _, _) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
         offset += name.length + 1
         skeletonDesc.setName(name)
         traceDd("Name : %s".format(name))
@@ -1314,7 +1326,7 @@ class NatNetClient() {
 
             // Channel Names list of NoC strings
             for (i in 0 until numChannels) {
-                val (channelName, separator, remainder) = bytesPartition(
+                val (channelName, _, _) = bytesPartition(
                     data.sliceArray(offset until data.size),
                     "\u0000"
                 )
@@ -1429,67 +1441,81 @@ class NatNetClient() {
             val dataType = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
 //            dataTmp=None
-            if (dataType == 0) {
-                traceDd("Type: 0 Markerset")
-                val (offsetTmp, dataTmp) = unpackMarkerSetDescription(
-                    data.sliceArray(offset until data.size),
-                    major,
-                    minor
-                )
-                offset += offsetTmp
-                dataDescs.addData(dataTmp)
-            } else if (dataType == 1) {
-                traceDd("Type: 1 Rigid Body")
-                val (offsetTmp, dataTmp) = unpackRigidBodyDescription(
-                    data.sliceArray(offset until data.size),
-                    major,
-                    minor
-                )
-                offset += offsetTmp
-                dataDescs.addData(dataTmp)
-            } else if (dataType == 2) {
-                traceDd("Type: 2 Skeleton")
-                val (offsetTmp, dataTmp) = unpackSkeletonDescription(
-                    data.sliceArray(offset until data.size),
-                    major,
-                    minor
-                )
-                offset += offsetTmp
-                dataDescs.addData(dataTmp)
-            } else if (dataType == 3) {
-                traceDd("Type: 3 Force Plate")
-                val (offsetTmp, dataTmp) = unpackForcePlateDescription(
-                    data.sliceArray(offset until data.size),
-                    major,
-                    minor
-                )
-                offset += offsetTmp
-                dataDescs.addData(dataTmp)
-            } else if (dataType == 4) {
-                traceDd("Type: 4 Device")
-                val (offsetTmp, dataTmp) = unpackDeviceDescription(
-                    data.sliceArray(offset until data.size),
-                    major,
-                    minor
-                )
-                offset += offsetTmp
-                dataDescs.addData(dataTmp)
-            } else if (dataType == 5) {
-                traceDd("Type: 5 Camera")
-                val (offsetTmp, dataTmp) = unpackCameraDescription(
-                    data.sliceArray(offset until data.size),
-                    major,
-                    minor
-                )
-                offset += offsetTmp
-                dataDescs.addData(dataTmp)
-            } else {
-                println("Type: $dataType UNKNOWN")
-                println("ERROR: Type decode failure")
-                println("\t $(i + 1)  datasets processed of  $datasetCount")
-                println("\t $offset bytes processed of $packetSize")
-                println("\tPACKET DECODE STOPPED")
-                return Pair(offset, null)
+            when (dataType) {
+                0 -> {
+                    traceDd("Type: 0 Markerset")
+                    val (offsetTmp, dataTmp) = unpackMarkerSetDescription(
+                        data.sliceArray(offset until data.size),
+                        major,
+                        minor
+                    )
+                    offset += offsetTmp
+                    dataDescs.addData(dataTmp)
+                }
+
+                1 -> {
+                    traceDd("Type: 1 Rigid Body")
+                    val (offsetTmp, dataTmp) = unpackRigidBodyDescription(
+                        data.sliceArray(offset until data.size),
+                        major,
+                        minor
+                    )
+                    offset += offsetTmp
+                    dataDescs.addData(dataTmp)
+                }
+
+                2 -> {
+                    traceDd("Type: 2 Skeleton")
+                    val (offsetTmp, dataTmp) = unpackSkeletonDescription(
+                        data.sliceArray(offset until data.size),
+                        major,
+                        minor
+                    )
+                    offset += offsetTmp
+                    dataDescs.addData(dataTmp)
+                }
+
+                3 -> {
+                    traceDd("Type: 3 Force Plate")
+                    val (offsetTmp, dataTmp) = unpackForcePlateDescription(
+                        data.sliceArray(offset until data.size),
+                        major,
+                        minor
+                    )
+                    offset += offsetTmp
+                    dataDescs.addData(dataTmp)
+                }
+
+                4 -> {
+                    traceDd("Type: 4 Device")
+                    val (offsetTmp, dataTmp) = unpackDeviceDescription(
+                        data.sliceArray(offset until data.size),
+                        major,
+                        minor
+                    )
+                    offset += offsetTmp
+                    dataDescs.addData(dataTmp)
+                }
+
+                5 -> {
+                    traceDd("Type: 5 Camera")
+                    val (offsetTmp, dataTmp) = unpackCameraDescription(
+                        data.sliceArray(offset until data.size),
+                        major,
+                        minor
+                    )
+                    offset += offsetTmp
+                    dataDescs.addData(dataTmp)
+                }
+
+                else -> {
+                    println("Type: $dataType UNKNOWN")
+                    println("ERROR: Type decode failure")
+                    println("\t $(i + 1)  datasets processed of  $datasetCount")
+                    println("\t $offset bytes processed of $packetSize")
+                    println("\tPACKET DECODE STOPPED")
+                    return Pair(offset, null)
+                }
             }
             traceDd("\t$i datasets processed of $datasetCount")
             traceDd("\t $offset bytes processed of $packetSize")
@@ -1512,7 +1538,7 @@ class NatNetClient() {
         offset += 256
         // Server Version info
 //        serverVersion = struct.unpack( 'BBBB', data.sliceArray(offset until offset+4) )
-        val dataTmp = data.sliceArray(offset until offset + 4)
+        val dataTmp = data.sliceArray(offset until offset + 4).asUByteArray()
         offset += 4
         serverVersion[0] = dataTmp[0].toInt()
         serverVersion[1] = dataTmp[1].toInt()
@@ -1521,7 +1547,7 @@ class NatNetClient() {
 
         // NatNet Version info
 //        nnsvs = struct.unpack( 'BBBB', data.sliceArray(offset until offset+4) )
-        val nnsvs = data.sliceArray(offset until offset + 4)
+        val nnsvs = data.sliceArray(offset until offset + 4).asUByteArray()
         offset += 4
         natNetStreamVersionServer[0] = nnsvs[0].toInt()
         natNetStreamVersionServer[1] = nnsvs[1].toInt()
@@ -1603,10 +1629,10 @@ class NatNetClient() {
                 printLevel = gprintLevel()
                 if (messageId == NAT_FRAMEOFDATA) {
                     if (printLevel > 0) {
-                        if ((messageIdDict[tmpStr]?.rem(printLevel)) == 0) {
-                            printLevel = 1
+                        printLevel = if ((messageIdDict[tmpStr]?.rem(printLevel)) == 0) {
+                            1
                         } else {
-                            printLevel = 0
+                            0
                         }
                     }
                 }
@@ -1624,7 +1650,7 @@ class NatNetClient() {
         return 0
     }
 
-    private fun dataThreadFunction(inSocket: Any, stop: () -> Boolean, gprintLevel: () -> Int): Int {
+    private fun dataThreadFunction(inSocket: DatagramSocket, stop: () -> Boolean, gprintLevel: () -> Int): Int {
         val messageIdDict = mutableMapOf<String, Int>()
         var data = ByteArray(0)
         // 64k buffer size
@@ -1664,7 +1690,7 @@ class NatNetClient() {
                     //return 4
                 }
             }
-            if (data.size > 0) {
+            if (data.isNotEmpty()) {
                 //peek ahead at messageId
                 var messageId = getMessageId(data)
                 val tmpStr = "mi_%1d".format(messageId)
@@ -1676,10 +1702,10 @@ class NatNetClient() {
                 printLevel = gprintLevel()
                 if (messageId == NAT_FRAMEOFDATA) {
                     if (printLevel > 0) {
-                        if ((messageIdDict[tmpStr]?.rem(printLevel)) == 0) {
-                            printLevel = 1
+                        printLevel = if ((messageIdDict[tmpStr]?.rem(printLevel)) == 0) {
+                            1
                         } else {
-                            printLevel = 0
+                            0
                         }
                     }
                 }
@@ -1791,35 +1817,40 @@ class NatNetClient() {
         return messageId
     }
 
-    fun sendRequest(inSocket: Any, command: Int, newCommandStr: String, address: SocketAddress): Int {
+    fun sendRequest(inSocket: DatagramSocket, command: Int, newCommandStr: String, address: SocketAddress): Int {
         // Compose the message in our known message format
         var commandStr = newCommandStr
         var packetSize = 0
-        if (command == NAT_REQUEST_MODELDEF || command == NAT_REQUEST_FRAMEOFDATA) {
-            packetSize = 0
-            commandStr = ""
-        } else if (command == NAT_REQUEST) {
-            packetSize = commandStr.length + 1
-        } else if (command == NAT_CONNECT) {
-            commandStr = "Ping"
-            packetSize = commandStr.length + 1
-        } else if (command == NAT_KEEPALIVE) {
-            packetSize = 0
-            commandStr = ""
+        when (command) {
+            NAT_REQUEST_MODELDEF, NAT_REQUEST_FRAMEOFDATA -> {
+                packetSize = 0
+                commandStr = ""
+            }
+
+            NAT_REQUEST -> {
+                packetSize = commandStr.length + 1
+            }
+
+            NAT_CONNECT -> {
+                commandStr = "Ping"
+                packetSize = commandStr.length + 1
+            }
+
+            NAT_KEEPALIVE -> {
+                packetSize = 0
+                commandStr = ""
+            }
         }
 
         var data = intToBytes(command, 2, ByteOrder.LITTLE_ENDIAN)
         data += intToBytes(packetSize, 2, ByteOrder.LITTLE_ENDIAN)
 
-        data += commandStr.encodeToByteArray()
+        data += commandStr.toByteArray()
         data += "\u0000".toByteArray()
 
         val datagramPacket = DatagramPacket(data, data.size, address)
         return try {
-            when (inSocket) {
-                is MulticastSocket -> inSocket.send(datagramPacket)
-                is DatagramSocket -> inSocket.send(datagramPacket)
-            }
+            inSocket.send(datagramPacket)
             data.size
         } catch (e: Exception) {
             -1
@@ -1851,7 +1882,7 @@ class NatNetClient() {
         }
     }
 
-    fun sendKeepAlive(inSocket: Any, serverIpAddress: String, serverPort: Int): Int {
+    fun sendKeepAlive(inSocket: DatagramSocket, serverIpAddress: String, serverPort: Int): Int {
         return sendRequest(inSocket, NAT_KEEPALIVE, "", InetSocketAddress(serverIpAddress, serverPort))
     }
 
