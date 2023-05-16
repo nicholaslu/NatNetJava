@@ -124,7 +124,7 @@ private fun getAsString(inputStr: Any?): String {
 
         else -> {
             println("type_input_str = %s NOT HANDLED".format(typeInputStr))
-            inputStr.toString() //todo return inputStr or inputStr.toString()
+            inputStr.toString()
         }
     }
 }
@@ -238,7 +238,7 @@ class RigidBody(val idNum: Int, val pos: ArrayList<Double>, val rot: ArrayList<D
     var error = 0.0
 
     fun addRigidBodyMarker(rigidBodyMarker: RigidBodyMarker): Int {
-        rbMarkerList.add(rigidBodyMarker) //todo deepcopy
+        rbMarkerList.add(rigidBodyMarker)
         return rbMarkerList.size
     }
 
@@ -422,7 +422,7 @@ class LabeledMarkerData {
 }
 
 class ForcePlateChannelData {
-    val frameList = arrayListOf<Double>() //todo what is frame
+    val frameList = arrayListOf<Double>()
 
 
     fun addFrameEntry(frameEntry: Double): Int {
@@ -454,7 +454,7 @@ class ForcePlateChannelData {
 }
 
 class ForcePlate(val idNum: Int = 0) {
-    val channelDataList = arrayListOf<ForcePlateChannelData>() //todo what is channelData
+    val channelDataList = arrayListOf<ForcePlateChannelData>()
 
     fun addChannelData(channelData: ForcePlateChannelData): Int {
         channelDataList.add(channelData)
@@ -504,7 +504,7 @@ class ForcePlateData {
 }
 
 class DeviceChannelData {
-    val frameList = arrayListOf<Double>() //todo what is frame
+    val frameList = arrayListOf<Double>()
 
     fun addFrameEntry(frameEntry: Double): Int {
         frameList.add(frameEntry)

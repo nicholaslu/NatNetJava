@@ -264,11 +264,11 @@ fun main(args: Array<String>) {
                 val szCommand = "TimelineStop"
                 val returnCode = streamingClient.sendCommand(szCommand)
                 Thread.sleep(1000)
-                println("Command: %s - returnCode: %d".format(szCommand, returnCode))
+                println("Command: %s - return_code: %d".format(szCommand, returnCode))
             } else if (c1 == "r") {
                 val szCommand = "TimelinePlay"
                 val returnCode = streamingClient.sendCommand(szCommand)
-                println("Command: %s - returnCode: %d".format(szCommand, returnCode))
+                println("Command: %s - return_code: %d".format(szCommand, returnCode))
             } else if (c1 == "o") {
                 val tmpCommands = arrayListOf(
                     "TimelinePlay",
@@ -281,7 +281,7 @@ fun main(args: Array<String>) {
                 )
                 for (szCommand in tmpCommands) {
                     val returnCode = streamingClient.sendCommand(szCommand)
-                    println("Command: %s - returnCode: %d".format(szCommand, returnCode))
+                    println("Command: %s - return_code: %d".format(szCommand, returnCode))
                 }
                 Thread.sleep(1000)
             } else if (c1 == "w") {
@@ -296,7 +296,7 @@ fun main(args: Array<String>) {
                 )
                 for (szCommand in tmpCommands) {
                     val returnCode = streamingClient.sendCommand(szCommand)
-                    println("Command: %s - returnCode: %d".format(szCommand, returnCode))
+                    println("Command: %s - return_code: %d".format(szCommand, returnCode))
                 }
                 Thread.sleep(1000)
             } else if (c1 == "t") {

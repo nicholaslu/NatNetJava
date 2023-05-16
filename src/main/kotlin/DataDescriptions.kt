@@ -110,7 +110,7 @@ private fun getAsString(inputStr: Any): String {
     return if (inputStr is String) {
         inputStr
     } else {
-        inputStr.toString() //todo how to decode to utf-8
+        inputStr.toString()
     }
 }
 
@@ -176,11 +176,11 @@ class MarkerSetDescription {
         val outTabStr2 = getTabStr(tabStr, level + 1)
         val outTabStr3 = getTabStr(tabStr, level + 2)
         var outString = ""
-        outString += "%sMarker Set Name: %s\n".format(outTabStr, markerSetName) //todo
+        outString += "%sMarker Set Name: %s\n".format(outTabStr, markerSetName)
         val numMarkers = markerNamesList.size
         outString += "%sMarker Count   : %d\n".format(outTabStr2, numMarkers)
         for (i in 0 until numMarkers) {
-            outString += "%s%3d Marker Name: %s\n".format(outTabStr3, i, markerNamesList[i]) //todo
+            outString += "%s%3d Marker Name: %s\n".format(outTabStr3, i, markerNamesList[i])
         }
         return outString
     }
@@ -304,7 +304,7 @@ class ForcePlateDescription(newId: Int = 0, private var serialNumber: String = "
     //    val corners = [[0.0 for col in 0 until 3] for row in 0 until 4]
     private var plateType = 0
     private var channelDataType = 0
-    val channelList = arrayListOf<String>() //todo what is channel type
+    val channelList = arrayListOf<String>()
 
     fun setId(newId: Int) {
         idNum = newId

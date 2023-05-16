@@ -40,7 +40,12 @@ fun intFromBytes(data: ByteArray, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN
 }
 
 @ExperimentalUnsignedTypes
-fun intToBytes(data: Int, length: Int, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN, signed: Boolean = false): ByteArray {
+fun intToBytes(
+    data: Int,
+    length: Int,
+    byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN,
+    signed: Boolean = false
+): ByteArray {
     if (signed) {
         return if (length == 2) {
             ByteBuffer.allocate(length).order(byteOrder).putShort(data.toShort()).array()
@@ -89,6 +94,7 @@ fun traceMf(vararg args: Any) {
     ;
 }
 
+@ExperimentalUnsignedTypes
 fun getMessageId(data: ByteArray): Int {
     return intFromBytes(data.sliceArray(0 until 2), ByteOrder.LITTLE_ENDIAN)
 }
@@ -233,6 +239,7 @@ class FPCorners() {
     }
 }
 
+@ExperimentalUnsignedTypes
 class NatNetClient {
     // printLevel = 0 off
     // printLevel = 1 on
@@ -430,7 +437,7 @@ class NatNetClient {
             // allow multiple clients on same machine to use multicast group address/port
             result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
             try {
-                result.bind(InetSocketAddress(InetAddress.getByName(""), 0)) ////todo check getByName
+                result.bind(InetSocketAddress(InetAddress.getByName(""), 0))
             } catch (e: IOException) {
                 println("ERROR: command socket IOException occurred:\n%s".format(e.message))
                 println("Check Motive/Server mode requested mode agreement.  You requested Multicast ")
@@ -715,7 +722,7 @@ class NatNetClient {
 
         var offset = 0
         // Version 2.1 and later
-        var skeletonCount = 0
+        val skeletonCount: Int
         if ((major == 2 && minor > 0) || major > 2) {
             skeletonCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
@@ -861,7 +868,7 @@ class NatNetClient {
         val nFramesShowMax = 4
         var offset = 0
         // Device data (version 2.11 and later)
-        var deviceCount = 0
+        val deviceCount: Int
         if ((major == 2 && minor >= 11) || (major > 2)) {
             deviceCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
@@ -975,7 +982,7 @@ class NatNetClient {
     private fun unpackMocapData(data: ByteArray, packetSize: Int, major: Int, minor: Int): Pair<Int, MoCapData> {
         val mocapData = MoCapData()
         traceMf("MoCap Frame Begin\n-----------------")
-//        val data = memoryview( data ) //todo how to
+//        val data = memoryview( data )
         var offset = 0
 
         //Frame Prefix Data
@@ -1116,7 +1123,7 @@ class NatNetClient {
 
         // Version 2.0 or higher
         if ((major >= 2) || (major == 0)) {
-            val (name, separator, remainder) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
+            val (name, _, _) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
             offset += name.length + 1
             rbDesc.setName(name)
             traceDd("\tRigid Body Name   : ", name)
@@ -1166,7 +1173,7 @@ class NatNetClient {
                 //Marker Name
                 if ((major >= 4) || (major == 0)) {
                     // markername
-                    val (markerNameTmp, separator, remainder) = bytesPartition(
+                    val (markerNameTmp, _, _) = bytesPartition(
                         data.sliceArray(offset3 until data.size),
                         "\u0000"
                     )
@@ -1245,7 +1252,7 @@ class NatNetClient {
             traceDd("\tID : ", newId)
 
             // Serial Number
-            val (serialNumber, separator, remainder) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
+            val (serialNumber, _, _) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
             offset += serialNumber.length + 1
             fpDesc.setSerialNumber(serialNumber)
             traceDd("\tSerial Number : ", serialNumber)
@@ -1379,7 +1386,7 @@ class NatNetClient {
 
             // Channel Names list of NoC strings
             for (i in 0 until numChannels) {
-                val (channelName, separator, remainder) = bytesPartition(
+                val (channelName, _, _) = bytesPartition(
                     data.sliceArray(offset until data.size),
                     "\u0000"
                 )
@@ -1398,7 +1405,7 @@ class NatNetClient {
     private fun unpackCameraDescription(data: ByteArray, major: Int, minor: Int): Pair<Int, CameraDescription> {
         var offset = 0
         // Name
-        val (name, separator, remainder) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
+        val (name, _, _) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
         offset += name.length + 1
         traceDd("\tName       : %s".format(name))
         // Position
@@ -1530,7 +1537,7 @@ class NatNetClient {
         var offset = 0
         // Server name
         //szName = data.sliceArray(offset until  offset+256)
-        val (applicationNameTmp, separator, remainder) = bytesPartition(
+        val (applicationNameTmp, _, _) = bytesPartition(
             data.sliceArray(offset until offset + 256),
             "\u0000"
         )
@@ -1600,19 +1607,19 @@ class NatNetClient {
                 val addr = datagramPacket.address
             } catch (e: IOException) {
                 if (stop()) {
-//                    println("ERROR: data socket access error occurred:\n  %s".format(e.message))
+//                    println("ERROR: command socket access error occurred:\n  %s".format(e.message))
 //                    return 1
                     println("shutting down")
                 }
             } catch (e: PortUnreachableException) {
-                println("ERROR: data socket access PortUnreachableException occurred")
+                println("ERROR: command socket access PortUnreachableException occurred")
 //                return 2
             } catch (e: IllegalBlockingModeException) {
-                println("ERROR: data socket access IllegalBlockingModeException occurred")
+                println("ERROR: command socket access IllegalBlockingModeException occurred")
 //                return 3
             } catch (e: SocketTimeoutException) {
                 if (useMulticast) {
-                    println("ERROR: data socket access timeout occurred. Server not responding")
+                    println("ERROR: command socket access timeout occurred. Server not responding")
                     //return 4
                 }
             }
@@ -1661,34 +1668,25 @@ class NatNetClient {
             // Block for input
             try {
                 val datagramPacket = DatagramPacket(recvBuffer, recvBufferSize)
-                when (inSocket) {
-                    is MulticastSocket -> {
-                        inSocket.receive(datagramPacket)
-                    }
-
-                    is DatagramSocket -> {
-                        inSocket.receive(datagramPacket)
-                    }
-                }
+                inSocket.receive(datagramPacket)
                 data = datagramPacket.data
                 val addr = datagramPacket.address
             } catch (e: IOException) {
-                if (stop()) {
-//                    println("ERROR: command socket access error occurred:\n  %s".format(e.message))
-                    //return 1
-                    println("shutting down")
+                if (!stop()) {
+                    println("ERROR: data socket access error occurred:\n  %s".format(e.message))
+                    return 1
                 }
             } catch (e: PortUnreachableException) {
-                println("ERROR: command socket access PortUnreachableException occurred")
-                return 2
+                println("ERROR: data socket access PortUnreachableException occurred")
+//                return 2
             } catch (e: IllegalBlockingModeException) {
-                println("ERROR: command socket access IllegalBlockingModeException occurred")
-                return 3
+                println("ERROR: data socket access IllegalBlockingModeException occurred")
+//                return 3
             } catch (e: SocketTimeoutException) {
-                if (useMulticast) {
-                    println("ERROR: command socket access timeout occurred. Server not responding")
-                    //return 4
-                }
+//                if (useMulticast) {
+                println("ERROR: data socket access timeout occurred. Server not responding")
+//                    return 4
+//                }
             }
             if (data.isNotEmpty()) {
                 //peek ahead at messageId
@@ -1804,7 +1802,7 @@ class NatNetClient {
         } else if (messageId == NAT_MESSAGESTRING) {
             trace("Message ID  : %3d NAT_MESSAGESTRING".format(messageId))
             trace("Packet Size : ", packetSize)
-            val (message, separator, remainder) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
+            val (message, _, _) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
             offset += message.length + 1
             trace("Received message from server:", message)
         } else {
@@ -1877,7 +1875,7 @@ class NatNetClient {
         for (szCommand in tmpCommands) {
             val returnCode = sendCommand(szCommand)
             if (printResults) {
-                println("Command: %s - returnCode: %d".format(szCommand, returnCode))
+                println("Command: %s - return_code: %d".format(szCommand, returnCode))
             }
         }
     }
