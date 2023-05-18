@@ -1,7 +1,4 @@
-// OptiTrack NatNet direct depacketization sample for Kotlin
-//
-// Uses the Kotlin NatNetClient.kt library to establish a connection (by creating a NatNetClient),
-// and receive data via a NatNet connection and decode it using the NatNetClient library.
+// # OptiTrack NatNet direct depacketization library for Java/Kotlin
 
 import java.io.IOException
 import java.net.*
