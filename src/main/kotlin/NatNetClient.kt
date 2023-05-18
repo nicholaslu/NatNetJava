@@ -12,7 +12,7 @@ import java.util.*
 import kotlin.math.min
 
 @ExperimentalUnsignedTypes
-fun intFromBytes(data: ByteArray, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN, signed: Boolean = false): Int {
+fun bytesToInt(data: ByteArray, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN, signed: Boolean = false): Int {
     var result = 0
     if (signed) {
         if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
@@ -96,7 +96,7 @@ fun traceMf(vararg args: Any) {
 
 @ExperimentalUnsignedTypes
 fun getMessageId(data: ByteArray): Int {
-    return intFromBytes(data.sliceArray(0 until 2), ByteOrder.LITTLE_ENDIAN)
+    return bytesToInt(data.sliceArray(0 until 2), ByteOrder.LITTLE_ENDIAN)
 }
 
 // Create structs for reading various object types to speed up parsing.
@@ -527,7 +527,7 @@ class NatNetClient {
 
         // ID (4 bytes)
 //        newId = int.fromBytes(data.sliceArray(offset until offset+4), byteorder = 'little')
-        var newId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        var newId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
 
         traceMf("RB: %3d ID: %3d".format(rbNum, newId))
@@ -552,7 +552,7 @@ class NatNetClient {
         // RB Marker Data ( Before version 3.0.  After Version 3.0 Marker data is in description )
         if (major < 3 && major != 0) {
             // Marker count (4 bytes)
-            val markerCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val markerCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             val markerCountRange = 0 until markerCount
             traceMf("\tMarker Count:", markerCount)
@@ -573,7 +573,7 @@ class NatNetClient {
             if (major >= 2) {
                 // Marker ID's
                 for (i in markerCountRange) {
-                    newId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                    newId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                     offset += 4
                     traceMf("\tMarker ID", i, ":", newId)
                     rbMarkerList[i].idNum = newId //todo id changed to idNum
@@ -618,12 +618,12 @@ class NatNetClient {
     // Unpack a skeleton object from a data packet
     private fun unpackSkeleton(data: ByteArray, major: Int, minor: Int): Pair<Int, Skeleton> {
         var offset = 0
-        val newId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val newId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceMf("ID:", newId)
         val skeleton = Skeleton(newId)
 
-        val rigidBodyCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val rigidBodyCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceMf("Rigid Body Count : %3d".format(rigidBodyCount))
         for (rbNum in 0 until rigidBodyCount) {
@@ -638,7 +638,7 @@ class NatNetClient {
     private fun unpackFramePrefixData(data: ByteArray): Pair<Int, FramePrefixData> {
         var offset = 0
         // Frame number (4 bytes)
-        val frameNumber = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val frameNumber = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceMf("Frame #:", frameNumber)
         val framePrefixData = FramePrefixData(frameNumber)
@@ -654,7 +654,7 @@ class NatNetClient {
         val markerSetData = MarkerSetData()
         var offset = 0
         // Marker set count (4 bytes)
-        val markerSetCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val markerSetCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceMf("Marker Set Count:", markerSetCount)
 
@@ -667,7 +667,7 @@ class NatNetClient {
             traceMf("Model Name      : ", modelName)
             markerData.setModelName(modelName)
             // Marker count (4 bytes)
-            val markerCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val markerCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceMf("Marker Count    : ", markerCount)
 
@@ -681,7 +681,7 @@ class NatNetClient {
         }
 
         // Unlabeled markers count (4 bytes)
-        val unlabeledMarkersCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val unlabeledMarkersCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceMf("Unlabeled Markers Count:", unlabeledMarkersCount)
 
@@ -703,7 +703,7 @@ class NatNetClient {
         val rigidBodyData = RigidBodyData()
         var offset = 0
         // Rigid body count (4 bytes)
-        val rigidBodyCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val rigidBodyCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceMf("Rigid Body Count:", rigidBodyCount)
 
@@ -724,7 +724,7 @@ class NatNetClient {
         // Version 2.1 and later
         val skeletonCount: Int
         if ((major == 2 && minor > 0) || major > 2) {
-            skeletonCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            skeletonCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceMf("Skeleton Count:", skeletonCount)
             for (i in 0 until skeletonCount) {
@@ -755,11 +755,11 @@ class NatNetClient {
         // Labeled markers (Version 2.3 and later)
         val labeledMarkerCount: Int
         if ((major == 2 && minor > 3) || major > 2) {
-            labeledMarkerCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            labeledMarkerCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceMf("Labeled Marker Count:", labeledMarkerCount)
             for (i in 0 until labeledMarkerCount) {
-                val tmpId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                val tmpId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                 offset += 4
                 val (modelId, markerId) = decodeMarkerId(tmpId)
                 val pos = Vector3.unpack(data.sliceArray(offset until offset + 12))
@@ -809,18 +809,18 @@ class NatNetClient {
         // Force Plate data (version 2.9 and later)
         val forcePlateCount: Int
         if ((major == 2 && minor >= 9) || major > 2) {
-            forcePlateCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            forcePlateCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceMf("Force Plate Count:", forcePlateCount)
             for (i in 0 until forcePlateCount) {
                 // ID
-                val forcePlateId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                val forcePlateId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                 offset += 4
                 val forcePlate = ForcePlate(forcePlateId)
 
                 // Channel Count
                 val forcePlateChannelCount =
-                    intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                    bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                 offset += 4
 
                 traceMf(
@@ -835,7 +835,7 @@ class NatNetClient {
                 for (j in 0 until forcePlateChannelCount) {
                     val fpChannelData = ForcePlateChannelData()
                     val forcePlateChannelFrameCount =
-                        intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                        bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                     offset += 4
                     var outString = "\tChannel %3d: ".format(j)
                     outString += "  %3d Frames - Frame Data: ".format(forcePlateChannelFrameCount)
@@ -870,16 +870,16 @@ class NatNetClient {
         // Device data (version 2.11 and later)
         val deviceCount: Int
         if ((major == 2 && minor >= 11) || (major > 2)) {
-            deviceCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            deviceCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceMf("Device Count:", deviceCount)
             for (i in 0 until deviceCount) {
                 // ID
-                val deviceId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                val deviceId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                 offset += 4
                 val device = Device(deviceId)
                 // Channel Count
-                val deviceChannelCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                val deviceChannelCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                 offset += 4
 
                 traceMf("\tDevice %3d      ID: %3d Num Channels: %3d".format(i, deviceId, deviceChannelCount))
@@ -888,7 +888,7 @@ class NatNetClient {
                 for (j in 0 until deviceChannelCount) {
                     val deviceChannelData = DeviceChannelData()
                     val deviceChannelFrameCount =
-                        intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                        bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                     offset += 4
                     var outString = "\tChannel %3d ".format(j)
                     outString += "  %3d Frames - Frame Data: ".format(deviceChannelFrameCount)
@@ -896,7 +896,7 @@ class NatNetClient {
                     // Device Frame Data
                     val nFramesShow = min(deviceChannelFrameCount, nFramesShowMax)
                     for (k in 0 until deviceChannelFrameCount) {
-//                        val deviceChannelVal = intFromBytes( data.sliceArray(offset until offset+4), ByteOrder.LITTLE_ENDIAN ) //todo choose what
+//                        val deviceChannelVal = bytesToInt( data.sliceArray(offset until offset+4), ByteOrder.LITTLE_ENDIAN ) //todo choose what
                         val deviceChannelVal = FloatValue.unpack(data.sliceArray(offset until offset + 4))
                         offset += 4
                         if (k < nFramesShow) {
@@ -927,11 +927,11 @@ class NatNetClient {
         var offset = 0
 
         // Timecode
-        val timecode = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val timecode = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         frameSuffixData.timecode = timecode
 
-        val timecodeSub = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val timecodeSub = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         frameSuffixData.timecodeSub = timecodeSub
 
@@ -948,17 +948,17 @@ class NatNetClient {
 
         // Hires Timestamp (Version 3.0 and later)
         if (major >= 3) {
-            val stampCameraMidExposure = intFromBytes(data.sliceArray(offset until offset + 8), ByteOrder.LITTLE_ENDIAN)
+            val stampCameraMidExposure = bytesToInt(data.sliceArray(offset until offset + 8), ByteOrder.LITTLE_ENDIAN)
             traceMf("Mid-exposure timestamp         : %3d".format(stampCameraMidExposure))
             offset += 8
             frameSuffixData.stampCameraMidExposure = stampCameraMidExposure.toLong()
 
-            val stampDataReceived = intFromBytes(data.sliceArray(offset until offset + 8), ByteOrder.LITTLE_ENDIAN)
+            val stampDataReceived = bytesToInt(data.sliceArray(offset until offset + 8), ByteOrder.LITTLE_ENDIAN)
             offset += 8
             frameSuffixData.stampDataReceived = stampDataReceived
             traceMf("Camera data received timestamp : %3d".format(stampDataReceived))
 
-            val stampTransmit = intFromBytes(data.sliceArray(offset until offset + 8), ByteOrder.LITTLE_ENDIAN)
+            val stampTransmit = bytesToInt(data.sliceArray(offset until offset + 8), ByteOrder.LITTLE_ENDIAN)
             offset += 8
             traceMf("Transmit timestamp             : %3d".format(stampTransmit))
             frameSuffixData.stampTransmit = stampTransmit.toLong()
@@ -1103,7 +1103,7 @@ class NatNetClient {
         traceDd("Marker Set Name: %s".format(name))
         msDesc.setName(name)
 
-        val markerCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val markerCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceDd("Marker Count : %3d".format(markerCount))
         for (i in 0 until markerCount) {
@@ -1130,13 +1130,13 @@ class NatNetClient {
         }
 
         // ID
-        val newId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val newId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         rbDesc.setId(newId)
         traceDd("\tID                : ", newId)
 
         //Parent ID
-        val parentId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val parentId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         rbDesc.setParentId(parentId)
         traceDd("\tParent ID         : ", parentId)
@@ -1151,7 +1151,7 @@ class NatNetClient {
         // Version 3.0 and higher, rigid body marker information contained in description
         if ((major >= 3) or (major == 0)) {
             // Marker Count
-            val markerCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val markerCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceDd("\tNumber of Markers : ", markerCount)
 
@@ -1167,7 +1167,7 @@ class NatNetClient {
                 offset1 += 12
 
                 // Active Label
-                val activeLabel = intFromBytes(data.sliceArray(offset2 until offset2 + 4), ByteOrder.LITTLE_ENDIAN)
+                val activeLabel = bytesToInt(data.sliceArray(offset2 until offset2 + 4), ByteOrder.LITTLE_ENDIAN)
                 offset2 += 4
 
                 //Marker Name
@@ -1213,13 +1213,13 @@ class NatNetClient {
         traceDd("Name : %s".format(name))
 
         //ID
-        val newId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val newId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         skeletonDesc.setId(newId)
         traceDd("ID : %3d".format(newId))
 
         // # of RigidBodies
-        val rigidBodyCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val rigidBodyCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceDd("Rigid Body (Bone) Count : %3d".format(rigidBodyCount))
 
@@ -1246,7 +1246,7 @@ class NatNetClient {
         if (major >= 3) {
             val fpDesc = ForcePlateDescription()
             // ID
-            val newId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val newId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             fpDesc.setId(newId)
             traceDd("\tID : ", newId)
@@ -1315,19 +1315,19 @@ class NatNetClient {
             fpDesc.setCorners(cornersTmp)
 
             // Plate Type int
-            val plateType = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val plateType = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             fpDesc.setPlateType(plateType)
             traceDd("Plate Type : ", plateType)
 
             // Channel Data Type int
-            val channelDataType = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val channelDataType = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             fpDesc.setChannelDataType(channelDataType)
             traceDd("Channel Data Type : ", channelDataType)
 
             // Number of Channels int
-            val numChannels = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val numChannels = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceDd("Number of Channels : ", numChannels)
 
@@ -1353,7 +1353,7 @@ class NatNetClient {
         var offset = 0
         if (major >= 3) {
             // newId
-            val newId = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val newId = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceDd("\tID : ", newId)
 
@@ -1368,19 +1368,19 @@ class NatNetClient {
             traceDd("\tSerial Number : ", serialNumber)
 
             // Device Type int
-            val deviceType = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val deviceType = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceDd("Device Type : ", deviceType)
 
             // Channel Data Type int
-            val channelDataType = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val channelDataType = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceDd("Channel Data Type : ", channelDataType)
 
             val deviceDesc = DeviceDescription(newId, name, serialNumber, deviceType, channelDataType)
 
             // Number of Channels int
-            val numChannels = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val numChannels = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
             traceDd("Number of Channels ", numChannels)
 
@@ -1440,12 +1440,12 @@ class NatNetClient {
         val dataDescs = DataDescriptions()
         var offset = 0
         // # of data sets to process
-        val datasetCount = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+        val datasetCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
         traceDd("Dataset Count : ", datasetCount)
         for (i in 0 until datasetCount) {
             traceDd("Dataset ", i)
-            val dataType = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+            val dataType = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
             offset += 4
 //            dataTmp=None
             when (dataType) {
@@ -1734,7 +1734,7 @@ class NatNetClient {
 
         val messageId = getMessageId(data)
 
-        val packetSize = intFromBytes(data.sliceArray(2 until 4), ByteOrder.LITTLE_ENDIAN)
+        val packetSize = bytesToInt(data.sliceArray(2 until 4), ByteOrder.LITTLE_ENDIAN)
 
         //skip the 4 bytes for message ID and packetSize
         var offset = 4
@@ -1782,7 +1782,7 @@ class NatNetClient {
             trace("Message ID  : %3d NAT_RESPONSE".format(messageId))
             trace("Packet Size : ", packetSize)
             if (packetSize == 4) {
-                val commandResponse = intFromBytes(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
+                val commandResponse = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
                 offset += 4
                 trace("Command response: %d".format(commandResponse))
             } else {
