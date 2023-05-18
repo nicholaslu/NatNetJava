@@ -7,6 +7,27 @@ import java.nio.ByteOrder
 import java.nio.channels.IllegalBlockingModeException
 import java.util.*
 import kotlin.math.min
+import kotlin.system.exitProcess
+
+fun trace(vararg args: Any) {
+    //uncomment the one you want to use
+    println(Array(args.size) { args[it].toString() }.joinToString(separator = ""))
+//    ;
+}
+
+//Used for Data Description functions
+fun traceDd(vararg args: Any) {
+    //uncomment the one you want to use
+    println(Array(args.size){args[it].toString()}.joinToString(separator = ""))
+    ;
+}
+
+//Used for MoCap Frame Data functions
+fun traceMf(vararg args: Any) {
+    //uncomment the one you want to use
+//    println(Array(args.size) { args[it].toString() }.joinToString(separator = ""))
+    ;
+}
 
 @ExperimentalUnsignedTypes
 fun bytesToInt(data: ByteArray, byteOrder: ByteOrder = ByteOrder.LITTLE_ENDIAN, signed: Boolean = false): Int {
@@ -69,26 +90,6 @@ fun bytesPartition(data: ByteArray, sep: String): Triple<String, String, String>
     val sb = StringBuilder()
     list.slice(1 until list.size).forEach { i -> sb.append(i) }
     return Triple(list[0], sep, sb.toString())
-}
-
-fun trace(vararg args: Any) {
-    //uncomment the one you want to use
-    println(Array(args.size) { args[it].toString() }.joinToString(separator = ""))
-//    ;
-}
-
-//Used for Data Description functions
-fun traceDd(vararg args: Any) {
-    //uncomment the one you want to use
-//    println(Array(args.size){args[it].toString()}.joinToString(separator = ""))
-    ;
-}
-
-//Used for MoCap Frame Data functions
-fun traceMf(vararg args: Any) {
-    //uncomment the one you want to use
-//    println(Array(args.size) { args[it].toString() }.joinToString(separator = ""))
-    ;
 }
 
 @ExperimentalUnsignedTypes
@@ -430,11 +431,14 @@ class NatNetClient {
     private fun createCommandSocket(): DatagramSocket {
         if (useMulticast) {
             // Multicast case
-            val result = MulticastSocket(null)
+            val result = MulticastSocket(0)
             // allow multiple clients on same machine to use multicast group address/port
-            result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
+//            result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
             try {
-                result.bind(InetSocketAddress(InetAddress.getByName(""), 0))
+//                val result = MulticastSocket(0)
+//                result.bind(InetSocketAddress(InetAddress.getByName(null), 0))
+                result.reuseAddress = true
+//                result.bind(InetSocketAddress(InetAddress.getByName(""), 0))
             } catch (e: IOException) {
                 println("ERROR: command socket IOException occurred:\n%s".format(e.message))
                 println("Check Motive/Server mode requested mode agreement.  You requested Multicast ")
@@ -446,7 +450,8 @@ class NatNetClient {
                 println("ERROR: command socket UnknownHostException occurred.")
             }
             // set to broadcast mode
-            result.setOption(StandardSocketOptions.SO_BROADCAST, true)
+            result.broadcast = true
+//            result.setOption(StandardSocketOptions.SO_BROADCAST, true)
             // set timeout to allow for keep alive messages
             result.soTimeout = 2000
             return result
@@ -467,7 +472,8 @@ class NatNetClient {
 //            result.settimeout(2.0)
             result.soTimeout = 2000
 //            result.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            result.reuseAddress = true
+//            result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
             return result
         }
     }
@@ -476,10 +482,11 @@ class NatNetClient {
     private fun createDataSocket(port: Int): DatagramSocket {
         if (useMulticast) {
             // Multicast case
-            val result = MulticastSocket(null)
-            result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            val result = MulticastSocket(port)
+            result.reuseAddress = true
+//            result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
             try {
-                result.bind(InetSocketAddress(port))
+//                result.bind(InetSocketAddress(port))
                 val mcastaddr = InetSocketAddress(multicastAddress, port)
                 val netIf = NetworkInterface.getByName(localIpAddress)
                 result.joinGroup(mcastaddr, netIf)
@@ -497,7 +504,8 @@ class NatNetClient {
         } else {
             // Unicast case
             val result = DatagramSocket(null)
-            result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
+            result.reuseAddress = true
+//            result.setOption(StandardSocketOptions.SO_REUSEADDR, true)
 //            result.bind(InetSocketAddress(InetAddress.getByName(localIpAddress), port))
             try {
                 result.bind(InetSocketAddress(InetAddress.getByName(""), 0)) //todo check getByName
@@ -1098,7 +1106,7 @@ class NatNetClient {
         val (name, _, _) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
         offset += name.length + 1
         traceDd("Marker Set Name: %s".format(name))
-        msDesc.setName(name)
+        msDesc.setName(name.toString())
 
         val markerCount = bytesToInt(data.sliceArray(offset until offset + 4), ByteOrder.LITTLE_ENDIAN)
         offset += 4
@@ -1107,7 +1115,7 @@ class NatNetClient {
             val (name, _, _) = bytesPartition(data.sliceArray(offset until data.size), "\u0000")
             offset += name.length + 1
             traceDd("\t%2d Marker Name: %s".format(i, name))
-            msDesc.addMarkerName(name)
+            msDesc.addMarkerName(name.toString())
         }
 
         return Pair(offset, msDesc)
@@ -1557,11 +1565,11 @@ class NatNetClient {
         natNetStreamVersionServer[1] = nnsvs[1].toInt()
         natNetStreamVersionServer[2] = nnsvs[2].toInt()
         natNetStreamVersionServer[3] = nnsvs[3].toInt()
-        if ((natNetStreamVersionServer[0] == 0) && (natNetStreamVersionServer[1] == 0)) {
-            natNetStreamVersionServer[0] = natNetStreamVersionServer[0]
-            natNetStreamVersionServer[1] = natNetStreamVersionServer[1]
-            natNetStreamVersionServer[2] = natNetStreamVersionServer[2]
-            natNetStreamVersionServer[3] = natNetStreamVersionServer[3]
+        if ((natNetRequestedVersion[0] == 0) && (natNetRequestedVersion[1] == 0)) {
+            natNetRequestedVersion[0] = natNetStreamVersionServer[0]
+            natNetRequestedVersion[1] = natNetStreamVersionServer[1]
+            natNetRequestedVersion[2] = natNetStreamVersionServer[2]
+            natNetRequestedVersion[3] = natNetStreamVersionServer[3]
             // Determine if the bitstream version can be changed
             if ((natNetStreamVersionServer[0] >= 4) && !useMulticast) {
                 canChangeBitstreamVersion = true
@@ -1746,7 +1754,7 @@ class NatNetClient {
                 minor
             )
             offset += offsetTmp
-            println("MoCap Frame: %d\n".format(mocapData.prefixData.frameNumber))
+            trace("MoCap Frame: %d\n".format(mocapData.prefixData.frameNumber)) //todo print->trace
             // get a string version of the data for output
             val mocapDataStr = mocapData.getAsString()
             if (printLevel >= 1) {
@@ -1812,9 +1820,9 @@ class NatNetClient {
         return messageId
     }
 
-    fun sendRequest(inSocket: DatagramSocket, command: Int, newCommandStr: String, address: SocketAddress): Int {
+    fun sendRequest(inSocket: DatagramSocket, command: Int, commandStr: String, address: SocketAddress): Int {
         // Compose the message in our known message format
-        var commandStr = newCommandStr
+        var commandStr = commandStr
         var packetSize = 0
         when (command) {
             NAT_REQUEST_MODELDEF, NAT_REQUEST_FRAMEOFDATA -> {

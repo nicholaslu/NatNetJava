@@ -20,7 +20,7 @@ fun receiveNewFrame(dataDict: MutableMap<String, Any>) {
         for (key in dataDict.keys) {
             outString += "$key="
             if (key in dataDict) {
-                outString += dataDict[key] as String + " "
+                outString += dataDict[key].toString() + " "
             }
             outString += "/"
         }
@@ -30,7 +30,7 @@ fun receiveNewFrame(dataDict: MutableMap<String, Any>) {
 
 // This is a callback function that gets connected to the NatNet client. It is called once per rigid body per frame
 fun receiveRigidBodyFrame(newId: Int, position: ArrayList<Double>, rotation: ArrayList<Double>) {
-    //
+//    println("id: $newId, pos: $position, rot: $rotation")
 //    println("Received frame for rigid body$newId")
 //    println("Received frame for rigid body$newId position rotation")
 }
