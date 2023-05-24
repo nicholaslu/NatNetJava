@@ -9,7 +9,10 @@ import kotlin.system.exitProcess
 
 // This is a callback function that gets connected to the NatNet client
 // and called once per mocap frame.
-fun receiveNewFrame(dataDict: MutableMap<String, Any>) {
+val callback = { value: Int ->
+    println(value)
+}
+val receiveNewFrame = { dataDict: MutableMap<String, Any> ->
     val orderList = arrayOf(
         "frameNumber", "markerSetCount", "unlabeledMarkersCount", "rigidBodyCount", "skeletonCount",
         "labeledMarkerCount", "timecode", "timecodeSub", "timestamp", "isRecording", "trackedModelsChanged"
@@ -29,8 +32,8 @@ fun receiveNewFrame(dataDict: MutableMap<String, Any>) {
 }
 
 // This is a callback function that gets connected to the NatNet client. It is called once per rigid body per frame
-fun receiveRigidBodyFrame(newId: Int, position: ArrayList<Double>, rotation: ArrayList<Double>) {
-//    println("id: $newId, pos: $position, rot: $rotation")
+val receiveRigidBodyFrame = { newId: Int, position: ArrayList<Double>, rotation: ArrayList<Double> ->
+    println("id: $newId, pos: $position, rot: $rotation")
 //    println("Received frame for rigid body$newId")
 //    println("Received frame for rigid body$newId position rotation")
 }
@@ -42,6 +45,7 @@ private fun addLists(totals: ArrayList<Int>, totalsTmp: ArrayList<Int>): ArrayLi
     return totals
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 fun printConfiguration(natnetClient: NatNetClient) {
     println("Connection Configuration:")
     println("  Client:          %s".format(natnetClient.localIpAddress))
@@ -124,6 +128,7 @@ fun printCommands(canChangeBitstream: Boolean) {
     println(outstring)
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 fun requestDataDescriptions(sClient: NatNetClient) {
 //    Request the model definitions
     sClient.sendRequest(
@@ -172,6 +177,7 @@ fun myParseArgs(argList: Array<String>, argsDict: MutableMap<String, Any>): Muta
     return argsDict
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
 fun main(args: Array<String>) {
 
     var optionsDict = mutableMapOf<String, Any>()
@@ -188,16 +194,8 @@ fun main(args: Array<String>) {
     streamingClient.useMulticast = optionsDict["useMulticast"] as Boolean
 
     // Configure the streaming client to call our rigid body handler on the emulator to send data out
-    streamingClient.newFrameListener = (object : NatNetClient.NewFrameListener {
-        override fun onReceive(dataDict: MutableMap<String, Any>) {
-            receiveNewFrame(dataDict)
-        }
-    })
-    streamingClient.rigidBodyListener = (object : NatNetClient.RigidBodyListener {
-        override fun onReceive(newId: Int, pos: ArrayList<Double>, rot: ArrayList<Double>) {
-            receiveRigidBodyFrame(newId, pos, rot)
-        }
-    })
+    streamingClient.newFrameListener = receiveNewFrame
+    streamingClient.rigidBodyListener = receiveRigidBodyFrame
 
     // Start up the streaming client now that the callbacks are set up .
     // This will run perpetually, and operate on a separate thread.
