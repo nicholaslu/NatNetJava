@@ -255,7 +255,7 @@ class NatNetClient {
     var localIpAddress = "127.0.0.1"
 
     // This should match the multicast address listed in Motive's streaming settings.
-    val multicastAddress = "239.255.42.99"
+    var multicastAddress = "239.255.42.99"
 
     // NatNet Command channel
     val commandPort = 1510
