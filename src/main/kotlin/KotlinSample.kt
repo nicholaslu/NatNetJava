@@ -9,9 +9,6 @@ import kotlin.system.exitProcess
 
 // This is a callback function that gets connected to the NatNet client
 // and called once per mocap frame.
-val callback = { value: Int ->
-    println(value)
-}
 val receiveNewFrame = { dataDict: MutableMap<String, Any> ->
     val orderList = arrayOf(
         "frameNumber", "markerSetCount", "unlabeledMarkersCount", "rigidBodyCount", "skeletonCount",
